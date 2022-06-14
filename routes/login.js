@@ -8,7 +8,7 @@ const UsersDB = require("../models/UsersDB");
 
 dotenv.config();
 
-router.get("/", (request, response) => {
+router.post("/", async (request, response) => {
     try {
         const { body } = request;
 
@@ -35,7 +35,7 @@ router.get("/", (request, response) => {
         const isValidPassword = await bcrypt.compare(password, savedUserData.password);
 
         if (isValidPassword) {
-            const token = jwt.sign({ userName }, proceess.env.TOKEN_KEY, { expiresIn: "24h" });
+            const token = jwt.sign({ userName }, process.env.TOKEN_KEY, { expiresIn: "24h" });
             savedUserData.token = token;
             await savedUserData.save();
             response.status(200).send({ token });

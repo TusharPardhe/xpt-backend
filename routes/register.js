@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 dotenv.config();
 
-router.get("/", (request, response) => {
+router.post("/", async (request, response) => {
 
     try {
         const { body } = request;

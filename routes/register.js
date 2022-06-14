@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const dotenv = require("dotenv");
-const UsersDB = require("../models/UsersDB");
+const UserSchema = require("../models/UserSchema");
 const jwt = require("jsonwebtoken");
 
 dotenv.config();
@@ -23,14 +23,14 @@ router.post("/", async (request, response) => {
             res.status(400).send("Bad request. Please check request");
         }
 
-        const doesUserExists = await UsersDB.findOne({ email: userName });
+        const doesUserExists = await UserSchema.findOne({ email: userName });
 
         if (doesUserExists) {
             response.status(409).send("Username already exists.");
             return;
         };
 
-        const User = new UsersDB(body);
+        const User = new UserSchema(body);
         await User.save();
         response.status(200).send("Data saved successfully");
 

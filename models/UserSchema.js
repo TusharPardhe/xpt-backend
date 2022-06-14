@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-let UsersDB = new mongoose.Schema({
+let UserSchema = new mongoose.Schema({
     userName: {
         type: String,
         required: [true, "Username is mandatory"],
@@ -21,7 +21,7 @@ let UsersDB = new mongoose.Schema({
     },
 });
 
-UsersDB.pre("save", async function (next) {
+UserSchema.pre("save", async function (next) {
     try {
         const salt = await bcrypt.genSalt(12);
         const passwordHash = await bcrypt.hash(this.password, salt);
@@ -32,4 +32,4 @@ UsersDB.pre("save", async function (next) {
     }
 });
 
-module.exports = mongoose.model("UsersDB", UsersDB);
+module.exports = mongoose.model("UserSchema", UserSchema);

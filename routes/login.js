@@ -4,7 +4,7 @@ const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const UsersDB = require("../models/UsersDB");
+const UserSchema = require("../models/UserSchema");
 
 dotenv.config();
 
@@ -23,7 +23,7 @@ router.post("/", async (request, response) => {
             res.status(400).send("Bad request. Please check request");
         };
 
-        const savedUserData = await UsersDB.findOne({ userName });
+        const savedUserData = await UserSchema.findOne({ userName });
 
         if (!savedUserData) {
             response.status(409).send({

@@ -7,12 +7,13 @@ const mongoose = require("mongoose");
 
 const register = require("./routes/register");
 const login = require("./routes/login");
+const test = require("./routes/test");
 
 dotenv.config();
 app.use(cors());
 
 // DB CONFIG
-mongoose.connect(`mongodb+srv://tushar:${process.env.DB_PASSWORD}@cluster0.wf2n8.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`, {
+mongoose.connect(`mongodb+srv://tusharpardhe:${process.env.DB_PASSWORD}@database-cluster.vkwebsu.mongodb.net/?retryWrites=true&w=majority`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });
@@ -29,6 +30,7 @@ app.use(express.json());
 // ROUTES
 app.use("/register", register);
 app.use("/login", login);
+app.use("/test", test);
 
 // PORT
 const PORT = process.env.PORT || 3000;

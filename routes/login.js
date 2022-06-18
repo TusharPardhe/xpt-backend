@@ -36,7 +36,7 @@ router.post("/", decryptJSON, async (request, response) => {
         const isValidPassword = await bcrypt.compare(password, savedUserData.password);
 
         if (isValidPassword) {
-            const token = jwt.sign({ userName }, process.env.TOKEN_KEY, { expiresIn: "24h" });
+            const token = jwt.sign({ userName }, process.env.TOKEN_KEY, { expiresIn: "84h" });
             response.status(200).send({ token });
         } else {
             response.status(200).send({ error: "Wrong password entered" });

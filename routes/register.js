@@ -3,11 +3,11 @@ const router = express.Router();
 const dotenv = require("dotenv");
 const UserSchema = require("../models/UserSchema");
 const jwt = require("jsonwebtoken");
+const decryptJSON = require("../middlewares/decryptRequest");
 
 dotenv.config();
 
-router.post("/", async (request, response) => {
-
+router.post("/", decryptJSON, async (request, response) => {
     try {
         const { body } = request;
 
@@ -35,9 +35,9 @@ router.post("/", async (request, response) => {
         const User = new UserSchema(body);
         await User.save();
         response.status(200).send({ success: "Data saved successfully" });
-    } catch(err) {
+    } catch (err) {
         response.status(400).send(err);
-    };
+    }
 });
 
 module.exports = router;

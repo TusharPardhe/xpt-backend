@@ -7,7 +7,7 @@ const verifyJwt = require("../middlewares/verifyJwt");
 
 dotenv.config();
 
-router.get("/", verifyJwt, (request, response) => {
+router.post("/", verifyJwt, (request, response) => {
     response.send(request.body);
 })
 

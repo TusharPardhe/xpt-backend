@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 
-let UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     userName: {
         type: String,
         required: [true, "Username is mandatory"],

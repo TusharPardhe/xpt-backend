@@ -5,10 +5,11 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const UserSchema = require("../models/UserSchema");
+const decryptJSON = require("../middlewares/decryptRequest");
 
 dotenv.config();
 
-router.post("/", async (request, response) => {
+router.post("/", decryptJSON, async (request, response) => {
     try {
         const { body } = request;
 
@@ -20,33 +21,30 @@ router.post("/", async (request, response) => {
         const { userName, password } = body;
 
         if (!(userName && password)) {
-            res.status(400).send("Bad request. Please check request");
-        };
+            response.status(400).send({ error: "Bad request. Please check request" });
+            return;
+        }
 
-        const savedUserData = await UserSchema.findOne({ userName });
+        const savedUserData = (await UserSchema.findOne({ userName })) || (await UserSchema.findOne({ address: userName }));
 
         if (!savedUserData) {
             response.status(409).send({
-                error: "User does not exist. Please enter valid details"
+                error: "User does not exist. Please enter valid details",
             });
             return;
-        };
-
+        }
         const isValidPassword = await bcrypt.compare(password, savedUserData.password);
 
         if (isValidPassword) {
             const token = jwt.sign({ userName }, process.env.TOKEN_KEY, { expiresIn: "24h" });
-            savedUserData.token = token;
-            await savedUserData.save();
             response.status(200).send({ token });
         } else {
             response.status(200).send({ error: "Wrong password entered" });
-        };
-
+        }
     } catch (err) {
         console.log(err);
         response.status(400).send({ error: "Some error occurred." });
-    };
+    }
 
     return;
 });

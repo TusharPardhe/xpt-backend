@@ -7,12 +7,12 @@ const mongoose = require("mongoose");
 
 const register = require("./routes/register");
 const login = require("./routes/login");
-const test = require("./routes/test");
+const airdrop = require("./routes/airdrop");
 
 dotenv.config();
 app.use(cors());
 
-// DB CONFIG
+// MongoDB Connection
 mongoose.connect(`mongodb+srv://tusharpardhe:${process.env.DB_PASSWORD}@database-cluster.vkwebsu.mongodb.net/?retryWrites=true&w=majority`, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -24,14 +24,14 @@ db.once("open", function () {
     console.log("Connected to DB successfully");
 });
 
-// MIDDLEWARES
+// Middleware to convert request to json
 app.use(express.json());
 
-// ROUTES
+// Routes
 app.use("/register", register);
 app.use("/login", login);
-app.use("/test", test);
+app.use("/airdrop", airdrop);
 
-// PORT
+// Port
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server started successfully..."));

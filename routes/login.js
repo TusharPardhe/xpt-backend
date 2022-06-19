@@ -4,8 +4,6 @@ const router = express.Router();
 const decryptJSON = require("../middlewares/decryptRequest");
 const verifyUserLogin = require("../controllers/verifyUserLogin");
 
-router.post("/", decryptJSON, verifyUserLogin);
+router.post("/user", decryptJSON, verifyUserLogin);
 
 module.exports = router;
-
-

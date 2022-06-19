@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const verifyJwt = (req, res, next) => {
-    const token = req.body.token || req.query.token || req.headers["access-token"];
+    const token = req.body.token;
 
     if (!token) {
         res.status(403).send({ error: "A token is required for authentication" });

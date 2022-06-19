@@ -16,9 +16,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: [true, "Password is mandatory"],
     },
-    token: {
-        type: String,
-    },
 });
 
 UserSchema.pre("save", async function (next) {

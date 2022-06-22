@@ -10,7 +10,7 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        const { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, xummKyc, noFreeze, socials, description } = body;
+        const { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, xummKyc, noFreeze, socials, description, logo } = body;
 
         if (!(projectName && ticker && currencyName && date && issuer && addedByAccount)) {
             response.status(400).send({ error: ERROR_CODES[400] });
@@ -36,6 +36,7 @@ const storeAirdropDetails = async (request, response) => {
             noFreeze,
             socials,
             description,
+            logo,
             show: true,
         };
 

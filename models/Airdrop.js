@@ -25,6 +25,9 @@ const Airdrop = new mongoose.Schema({
         type: String,
         required: [true, "Account adding the details is mandatory"],
     },
+    logo: {
+        type: String,
+    },
     blackholed: {
         type: Boolean,
     },

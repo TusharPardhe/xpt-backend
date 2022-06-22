@@ -35,6 +35,7 @@ const fetchAirdropsList = async (request, response) => {
                       socials,
                       description,
                       show,
+                      logo,
                   } = airdrop;
                   const details = {
                       projectName,
@@ -48,6 +49,7 @@ const fetchAirdropsList = async (request, response) => {
                       noFreeze,
                       socials,
                       description,
+                      logo,
                   };
 
                   if (show) {
@@ -61,7 +63,11 @@ const fetchAirdropsList = async (request, response) => {
         const endingIndex = limit + startingIndex;
         airdropsList = airdropsList.slice(startingIndex, endingIndex);
 
-        response.status(200).send(airdropsList);
+        response.status(200).send({
+            list: airdropsList,
+            totalCount: list.length,
+        });
+        
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: ERROR_CODES[500] });

@@ -31,6 +31,7 @@ const onBoardUsers = async (request, response) => {
                 command: "account_info",
                 account: address,
             })
+            .then(() => false)
             .catch((err) => {
                 return err.data.error_message;
             });

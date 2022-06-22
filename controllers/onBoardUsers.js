@@ -1,5 +1,10 @@
+const { Client } = require("xrpl");
+const dotenv = require("dotenv");
+
 const UserSchema = require("../models/UserSchema");
 const { ERROR_CODES } = require("../constants/app.constants");
+
+dotenv.config();
 
 const onBoardUsers = async (request, response) => {
     try {
@@ -11,10 +16,27 @@ const onBoardUsers = async (request, response) => {
         }
 
         const { userName, address, password } = body;
-
         // Validate request
         if (!(userName && address && password)) {
             response.status(400).send({ error: ERROR_CODES[400] });
+            return;
+        }
+
+        // verify XRPL Address
+        const client = new Client(process.env.XRPL_SERVER);
+        await client.connect();
+
+        const errorneousAccount = await client
+            .request({
+                command: "account_info",
+                account: address,
+            })
+            .catch((err) => {
+                return err.data.error_message;
+            });
+
+        if (errorneousAccount) {
+            response.status(400).send({ error: errorneousAccount });
             return;
         }
 

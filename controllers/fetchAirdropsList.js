@@ -1,5 +1,5 @@
 const Airdrop = require("../models/Airdrop");
-const { ERROR_CODES } = require("../constants/app.constants");
+const { API_RESPONSE_CODE } = require("../constants/app.constants");
 
 const fetchAirdropsList = async (request, response) => {
     try {
@@ -13,7 +13,7 @@ const fetchAirdropsList = async (request, response) => {
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
 
         if (offset < 0 || limit < 0 || pageNumber < 0) {
-            response.status(400).send({ error: ERROR_CODES[400] });
+            response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         }
         // getting data from db
@@ -70,7 +70,7 @@ const fetchAirdropsList = async (request, response) => {
         
     } catch (err) {
         console.log(err);
-        response.status(500).send({ error: ERROR_CODES[500] });
+        response.status(500).send({ error: API_RESPONSE_CODE[500] });
     }
     return;
 };

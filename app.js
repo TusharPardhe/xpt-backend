@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const register = require("./routes/register");
 const login = require("./routes/login");
 const airdrop = require("./routes/airdrop");
+const user = require("./routes/user");
 
 dotenv.config();
 app.use(cors());
@@ -31,6 +32,7 @@ app.use(express.json());
 app.use("/register", register);
 app.use("/login", login);
 app.use("/airdrop", airdrop);
+app.use("/user", user);
 
 // Port
 const PORT = process.env.PORT || 3000;

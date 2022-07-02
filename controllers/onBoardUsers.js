@@ -2,7 +2,7 @@ const { Client } = require("xrpl");
 const dotenv = require("dotenv");
 
 const UserSchema = require("../models/UserSchema");
-const { ERROR_CODES } = require("../constants/app.constants");
+const { API_RESPONSE_CODE } = require("../constants/app.constants");
 
 dotenv.config();
 
@@ -11,14 +11,14 @@ const onBoardUsers = async (request, response) => {
         const { body } = request;
 
         if (!body) {
-            response.status(400).send({ error: ERROR_CODES[400] });
+            response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         }
 
         const { userName, address, password } = body;
         // Validate request
         if (!(userName && address && password)) {
-            response.status(400).send({ error: ERROR_CODES[400] });
+            response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         }
 
@@ -56,10 +56,10 @@ const onBoardUsers = async (request, response) => {
 
         const User = new UserSchema({ userName, address, password });
         await User.save();
-        response.status(200).send({ success: ERROR_CODES[200] });
+        response.status(200).send({ success: API_RESPONSE_CODE[200] });
     } catch (err) {
         console.log(err);
-        response.status(500).send({ error: ERROR_CODES[500] });
+        response.status(500).send({ error: API_RESPONSE_CODE[500] });
     }
     return;
 };

@@ -24,6 +24,7 @@ const saveAccountsList = async (request, response) => {
             });
             return;
         };
+
         // max limit 15 for each user account for now.
         const { accounts: userSavedAccountsInDB } = isAUser;
         if (userSavedAccountsInDB && userSavedAccountsInDB.length === 15) {
@@ -31,9 +32,29 @@ const saveAccountsList = async (request, response) => {
                 error: API_RESPONSE_CODE[507],
             });
             return;
-        }
+        };
 
-        const list = new storedAccountList({ userName, accounts });
+        // check if account is already present
+        if (userSavedAccountsInDB && Object.keys(userSavedAccountsInDB).length > 0) {
+            const [accountToSaveFromRequest, accountNameFromRequest] = Object.entries(accounts)[0];
+
+            if (userSavedAccountsInDB[accountToSaveFromRequest]) {
+                response.status(409).send({
+                    error: "Account address already exists",
+                });
+                return;
+            };
+
+            if (Object.values(userSavedAccountsInDB).includes(accountNameFromRequest)) {
+                response.status(409).send({
+                    error: "Account name already exists. Please choose some other name.",
+                });
+                return;
+            };
+        };
+
+        const updatedList = { ...accounts, ...userSavedAccountsInDB };
+        const list = new storedAccountList({ userName, accounts: updatedList });
         await list.save();
         response.status(200).send({ success: API_RESPONSE_CODE[200] });
 

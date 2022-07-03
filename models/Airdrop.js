@@ -18,7 +18,7 @@ const Airdrop = new mongoose.Schema({
         required: [true, "Currency Name is mandatory"],
     },
     date: {
-        type: String,
+        type: Number,
         required: [true, "Airdrop date is mandatory"],
     },
     addedByAccount: {

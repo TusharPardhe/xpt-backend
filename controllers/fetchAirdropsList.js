@@ -9,14 +9,14 @@ const fetchAirdropsList = async (request, response) => {
 
         // conversions and default values
         if (date) {
-            toDate = new Date(parseInt(date)).setUTCHours(23, 59, 59, 999);
-            fromDate = new Date(parseInt(date)).setUTCHours(0, 0, 0, 0);
+            toDate = new Date(parseInt(date)).setHours(23, 59, 59, 999);
+            fromDate = new Date(parseInt(date)).setHours(0, 0, 0, 0);
         };
 
         offset = offset ? parseInt(offset) : 0;
         limit = limit ? parseInt(limit) : 100;
-        fromDate = fromDate ? parseInt(fromDate) : new Date().setUTCHours(0, 0, 0, 0);
-        toDate = toDate ? parseInt(toDate) : new Date().setUTCHours(23, 59, 59, 999);
+        fromDate = fromDate ? parseInt(fromDate) : new Date().setHours(0, 0, 0, 0);
+        toDate = toDate ? parseInt(toDate) : new Date().setHours(23, 59, 59, 999);
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
 
         if (offset < 0 || limit < 0 || pageNumber < 0 || limit > 100) {

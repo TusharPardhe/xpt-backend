@@ -14,7 +14,7 @@ dotenv.config();
 app.use(cors());
 
 // MongoDB Connection
-mongoose.connect(`mongodb+srv://tusharpardhe:${process.env.DB_PASSWORD}@database-cluster.vkwebsu.mongodb.net/?retryWrites=true&w=majority`, {
+mongoose.connect("mongodb://127.0.0.1:27017/xpt", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });

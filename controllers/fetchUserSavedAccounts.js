@@ -13,7 +13,7 @@ const fetchUserSavedAccounts = async (request, response) => {
         const list = await storedAccountList.findOne({ userName });
 
         if (!list) {
-            response.status(404).send({
+            response.status(200).send({
                 error: API_RESPONSE_CODE[404],
             });
             return;

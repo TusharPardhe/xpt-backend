@@ -9,14 +9,14 @@ const fetchAirdropsList = async (request, response) => {
 
         // conversions and default values
         if (date) {
-            toDate = new Date(parseInt(date)).setHours(23, 59, 59, 999);
-            fromDate = new Date(parseInt(date)).setHours(0, 0, 0, 0);
+            fromDate = date;
+            toDate = null;
         };
 
         offset = offset ? parseInt(offset) : 0;
         limit = limit ? parseInt(limit) : 100;
-        fromDate = fromDate ? parseInt(fromDate) : new Date().setHours(0, 0, 0, 0);
-        toDate = toDate ? parseInt(toDate) : new Date().setHours(23, 59, 59, 999);
+        fromDate = fromDate ? parseInt(fromDate) : new Date().setHours(0, 0, 0, 0) / 1000;
+        toDate = toDate ? parseInt(toDate) : null;
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
 
         if (offset < 0 || limit < 0 || pageNumber < 0 || limit > 100) {
@@ -25,12 +25,10 @@ const fetchAirdropsList = async (request, response) => {
         };
 
         // getting data from db
-        const list = await Airdrop.find({
-            date: {
-                $gte: fromDate,
-                $lte: toDate,
-            }
-        });
+        let schemaDateFilter = {};
+        if (toDate) { schemaDateFilter.$lte = toDate; };
+        if (fromDate) { schemaDateFilter.$gte = fromDate; }
+        const list = await Airdrop.find({ date: { ...schemaDateFilter } });
 
         // getting useful information
         let airdropsList = list
@@ -43,12 +41,10 @@ const fetchAirdropsList = async (request, response) => {
                     issuer,
                     addedByAccount,
                     blackholed,
-                    xummKyc,
                     noFreeze,
-                    socials,
+                    links,
                     description,
                     show,
-                    logo,
                 } = airdrop;
                 const details = {
                     projectName,
@@ -58,11 +54,9 @@ const fetchAirdropsList = async (request, response) => {
                     issuer,
                     addedByAccount,
                     blackholed,
-                    xummKyc,
                     noFreeze,
-                    socials,
+                    links,
                     description,
-                    logo,
                 };
 
                 if (show) {

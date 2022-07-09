@@ -1,5 +1,8 @@
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { Client } = require("xrpl");
 const Airdrop = require("../models/Airdrop");
+
+const { API_RESPONSE_CODE, XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES } = require("../constants/app.constants");
+const { DISABLE_MASTER_KEY, NO_FREEZE } = XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES
 
 const storeAirdropDetails = async (request, response) => {
     try {
@@ -10,7 +13,7 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        const { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, xummKyc, noFreeze, socials, description, logo } = body;
+        let { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, noFreeze, links, description } = body;
 
         if (!(projectName && ticker && currencyName && date && issuer && addedByAccount)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
@@ -24,19 +27,31 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
+        const client = new Client(process.env.XRPL_SERVER);
+        await client.connect();
+
+        const issuerAccountDetails = await client.request({
+            command: "account_info",
+            account: issuer,
+        });
+
+        if (issuerAccountDetails.result) {
+            const accountFlags = issuerAccountDetails.result.account_data.Flags;
+            blackholed = !!(DISABLE_MASTER_KEY && accountFlags);
+            noFreeze = !!(NO_FREEZE && accountFlags);
+        }
+
         const dataToStore = {
             projectName,
             ticker,
             currencyName,
-            date,
+            date: parseInt(date),
             issuer,
             addedByAccount,
             blackholed,
-            xummKyc,
             noFreeze,
-            socials,
+            links,
             description,
-            logo,
             show: true,
         };
 

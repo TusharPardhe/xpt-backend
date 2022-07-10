@@ -21,8 +21,14 @@ const storeAirdropDetails = async (request, response) => {
         }
 
         const doesCoinAlreadyExist = await Airdrop.findOne({ currencyName });
+        const doesTickerExist = await Airdrop.findOne({ ticker });
 
-        if (doesCoinAlreadyExist) {
+        if (doesCoinAlreadyExist && doesCoinAlreadyExist.issuer === issuer) {
+            response.status(409).send({ error: API_RESPONSE_CODE[409] });
+            return;
+        }
+
+        if (doesTickerExist && doesTickerExist.issuer === issuer) {
             response.status(409).send({ error: API_RESPONSE_CODE[409] });
             return;
         }

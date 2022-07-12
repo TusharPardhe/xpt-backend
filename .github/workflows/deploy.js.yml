@@ -22,5 +22,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm i
-    - run: pm2 restart xpt
+    - run: "npm i"
+    - run: "pm2 delete -s xpt || :"
+    - run: "pm2 start ./app.js -f --name=xpt"

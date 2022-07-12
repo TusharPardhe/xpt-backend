@@ -1,4 +1,4 @@
-name: XPT-Backend
+name: XPT Backend Deployer
 
 on:
   push:

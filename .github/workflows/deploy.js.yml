@@ -22,5 +22,6 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+    - run: "git pull origin master"
     - run: "npm i"
     - run: "pm2 restart xpt"

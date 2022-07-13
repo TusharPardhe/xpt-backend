@@ -55,7 +55,7 @@ const fetchXrplAccountDetails = async (request, response) => {
             accountData.issuedFungibleTokens = gateway_balances.result.obligations;
         };
 
-        response.status(200).send({ data: accountData });
+        response.status(200).send({ ...accountData });
         await client.disconnect();
 
     } catch (err) {

@@ -10,7 +10,7 @@ const fetchUserSavedAccounts = require("../controllers/fetchUserSavedAccounts");
 
 router.post("/save/accounts", decryptJSON, verifyJwt, saveAccountsList);
 router.post("/delete/account", decryptJSON, verifyJwt, deleteSavedAccount);
-router.post("/account/details", verifyJwt, fetchXrplAccountDetails);
+router.post("/account/details", decryptJSON, verifyJwt, fetchXrplAccountDetails);
 router.post("/accounts", decryptJSON, verifyJwt, fetchUserSavedAccounts);
 
 module.exports = router;

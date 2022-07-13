@@ -33,7 +33,7 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        const client = new Client(process.env.XRPL_SERVER);
+        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
         await client.connect();
 
         const issuerAccountDetails = await client.request({

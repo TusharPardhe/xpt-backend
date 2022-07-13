@@ -23,7 +23,7 @@ const onBoardUsers = async (request, response) => {
         }
 
         // verify XRPL Address
-        const client = new Client(process.env.XRPL_SERVER);
+        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
         await client.connect();
 
         const errorneousAccount = await client

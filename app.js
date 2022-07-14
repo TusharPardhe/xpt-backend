@@ -10,7 +10,7 @@ const login = require("./routes/login");
 const airdrop = require("./routes/airdrop");
 const user = require("./routes/user");
 
-dotenv.config();
+dotenv.config({ path: ".env" });
 app.use(cors());
 
 // MongoDB Connection

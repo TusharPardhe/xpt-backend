@@ -1,4 +1,6 @@
 const { AES, enc } = require("crypto-js");
+const dotenv = require("dotenv");
+dotenv.config();
 
 const decryptJSON = (req, res, next) => {
     const { body } = req;

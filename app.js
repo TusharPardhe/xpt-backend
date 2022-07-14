@@ -1,7 +1,7 @@
 "use strict";
 const express = require("express");
 const app = express();
-const dotenv = require("dotenv");
+var dotenv = require("dotenv");
 const cors = require("cors");
 const mongoose = require("mongoose");
 
@@ -14,7 +14,7 @@ dotenv.config();
 app.use(cors());
 
 // MongoDB Connection
-mongoose.connect("mongodb://127.0.0.1:27017/xpt", {
+mongoose.connect(process.env.MONGO_DB, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 });

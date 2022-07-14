@@ -1,7 +1,5 @@
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
 const { API_RESPONSE_CODE } = require("../constants/app.constants");
-dotenv.config();
 
 const verifyJwt = (req, res, next) => {
     const token = req.body.token;

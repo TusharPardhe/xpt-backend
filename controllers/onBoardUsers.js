@@ -1,10 +1,7 @@
 const { Client } = require("xrpl");
-const dotenv = require("dotenv");
 
 const UserSchema = require("../models/UserSchema");
 const { API_RESPONSE_CODE } = require("../constants/app.constants");
-
-dotenv.config();
 
 const onBoardUsers = async (request, response) => {
     try {

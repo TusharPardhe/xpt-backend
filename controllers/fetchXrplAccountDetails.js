@@ -1,9 +1,6 @@
-const dotenv = require("dotenv");
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { Client } = require("xrpl");
 const { API_RESPONSE_CODE } = require("../constants/app.constants");
-
-dotenv.config();
 
 const fetchXrplAccountDetails = async (request, response) => {
 

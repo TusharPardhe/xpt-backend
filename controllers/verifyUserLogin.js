@@ -1,10 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const dotenv = require("dotenv");
-dotenv.config();
 
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
 const UserSchema = require("../models/UserSchema");
+const { API_RESPONSE_CODE } = require("../constants/app.constants");
 
 const verifyUserLogin = async (request, response) => {
     try {

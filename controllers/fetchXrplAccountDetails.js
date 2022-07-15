@@ -35,6 +35,7 @@ const fetchXrplAccountDetails = async (request, response) => {
         const account_lines = await client.request({
             command: "account_lines",
             ledger_index: "validated",
+            limit: 20,
             account,
         });
 

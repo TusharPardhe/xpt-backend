@@ -1,0 +1,532 @@
+{
+	"info": {
+		"_postman_id": "23ce0abe-c732-4d9f-98fa-80c03d1ed1ca",
+		"name": "xpt",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Register User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"let body = {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"    options: {",
+							"        raw: {",
+							"            language: 'json'",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userName\":\"tushar\",\n    \"password\":\"tushar\",\n    \"address\":\"rfXwi3SqywQ2gSsvHgfdVsyZdTVM15BG7Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/register/user",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"register",
+						"user"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register Airdrop",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"let body = {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"    options: {",
+							"        raw: {",
+							"            language: 'json'",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"projectName\":\"gggr\",\n    \"ticker\":\"xdr\",\n    \"issuer\":\"gggx\",\n    \"currencyName\":\"zaaw\",\n    \"date\": 1641148200000,\n    \"addedByAccount\":\"zzwe\",\n    \"xummKyc\":true,\n    \"socials\":[\n        {\n            \"name\":\"twitter\",\n            \"link\":\"twitter.com\"\n        }\n    ],\n    \"description\":\"\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InR1c2hhckVuY3J5cHRlZCIsImlhdCI6MTY1Njc1MjE5OSwiZXhwIjoxNjU3MDU0NTk5fQ.pzIYSIoXC9JfvxA0eQIzFFufwIiVCCAloRYrh-cdPWY\"\n\n}  ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:3000/airdrop/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"airdrop",
+						"add"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login User",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"let body = {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"    options: {",
+							"        raw: {",
+							"            language: 'json'",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userName\":\"tusharTest\",\n    \"password\":\"tusharTest\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/login/user",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"login",
+						"user"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Save User Accounts",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"let body = {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"    options: {",
+							"        raw: {",
+							"            language: 'json'",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userName\":\"tushar\",\n        \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InR1c2hhciIsImlhdCI6MTY1NzEwNjk4NCwiZXhwIjoxNjU3NDA5Mzg0fQ.ze1xMzczsI7cIEc7_rVicTVVOomnKrRGNJhtCCbsIBQ\",\n    \"accounts\": {\n    \"rhNpaqBjTogDTWxf8fBYQEWRkQb1zY3HiP\": \"test\",\n    \"rHtAhRdhzMhhGcMZvFY3oEUHyUEsKqQHKW\": \"w\",\n    \"rfbnog48mugNuAuzMtpEm3eBbxLbDozuCr\": \"rr\",\n    \"rn97Zbg9V6biqJoZ6EQ8RtuaMUTYHWFXyw\": \"bleh\"\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/user/save/accounts",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"user",
+						"save",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fetch saved accounts",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"let body = {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"    options: {",
+							"        raw: {",
+							"            language: 'json'",
+							"        }",
+							"    }",
+							"};",
+							"",
+							"pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userName\":\"tushar\",\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InR1c2hhciIsImlhdCI6MTY1NzEwNjk4NCwiZXhwIjoxNjU3NDA5Mzg0fQ.ze1xMzczsI7cIEc7_rVicTVVOomnKrRGNJhtCCbsIBQ\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/user/accounts",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"user",
+						"accounts"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Airdrops List",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"// let body = {",
+							"//     mode: 'raw',",
+							"//     raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"//     options: {",
+							"//         raw: {",
+							"//             language: 'json'",
+							"//         }",
+							"//     }",
+							"// };",
+							"",
+							"// pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/airdrop/list?date=1656831116655",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"airdrop",
+						"list"
+					],
+					"query": [
+						{
+							"key": "offset",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "pageNumber",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "fromDate",
+							"value": "1256784059150",
+							"disabled": true
+						},
+						{
+							"key": "toDate",
+							"value": "1656784059150",
+							"disabled": true
+						},
+						{
+							"key": "date",
+							"value": "1656831116655"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User Account Details",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// const encryptedReq = CryptoJS.AES.encrypt(pm.request.body.raw,\"*Rz?JM7xe^kQk@Ev&ykfU8=_4-*!kY\").toString();",
+							"",
+							"// let body = {",
+							"//     mode: 'raw',",
+							"//     raw: JSON.stringify({encryptedRequest:encryptedReq.toString()}),",
+							"//     options: {",
+							"//         raw: {",
+							"//             language: 'json'",
+							"//         }",
+							"//     }",
+							"// };",
+							"",
+							"// pm.request.body.update(body);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "token",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					},
+					{
+						"key": "",
+						"value": "",
+						"type": "default",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyTmFtZSI6InR1c2hhclRlc3QiLCJpYXQiOjE2NTc3MTYyNjUsImV4cCI6MTY1ODAxODY2NX0.phh2dFr_Pwub9VFr3WiiDBjYXWR5q-kgJJG8d5gG2p0\",\n    \"userName\": \"tusharTest\",\n    \"account\":\"rvYAfWj5gh67oV6fW32ZzP3Aw4Eubs59B\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.xptxrpl.com/user/account/details/",
+					"protocol": "https",
+					"host": [
+						"api",
+						"xptxrpl",
+						"com"
+					],
+					"path": [
+						"user",
+						"account",
+						"details",
+						""
+					],
+					"query": [
+						{
+							"key": "token",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "limit",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "pageNumber",
+							"value": "1",
+							"disabled": true
+						},
+						{
+							"key": "fromDate",
+							"value": "1256784059150",
+							"disabled": true
+						},
+						{
+							"key": "toDate",
+							"value": "1656784059150",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

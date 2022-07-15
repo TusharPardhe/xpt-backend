@@ -14,7 +14,7 @@ const verifyJwt = (req, res, next) => {
         if (req.body.userName === decoded.userName) {
             req.body.authenticated = true;
         } else {
-            return res.status(403).send(API_RESPONSE_CODE[403]);
+            return res.status(401).send("Invalid Token");
         }
     } catch (err) {
         return res.status(401).send("Invalid Token");

@@ -1,3 +1,4 @@
+const { convertStringToHex } = require("xrpl");
 const { XummSdk } = require("xumm-sdk");
 
 const { API_RESPONSE_CODE } = require("../constants/app.constants");
@@ -32,7 +33,7 @@ const xummQRDonation = async (request, response) => {
         if (memo) {
             request.Memos.push({
                 "Memo": {
-                    "MemoData": memo
+                    "MemoData": convertStringToHex(memo)
                 }
             });
         };

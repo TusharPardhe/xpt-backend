@@ -39,10 +39,7 @@ const storeAirdropDetails = async (request, response) => {
         const issuerAccountDetails = await client.request({
             command: "account_info",
             account: issuer,
-        }).catch(error => {
-            response.status(400).send({ error: error.data.error_message });
-            return;
-        })
+        });
 
         if (issuerAccountDetails.result) {
             const accountFlags = issuerAccountDetails.result.account_data.Flags;

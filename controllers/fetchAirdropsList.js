@@ -1,5 +1,5 @@
 const Airdrop = require("../models/Airdrop");
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../constants/app.constants");
 
 const fetchAirdropsList = async (request, response) => {
     try {
@@ -19,7 +19,7 @@ const fetchAirdropsList = async (request, response) => {
         toDate = toDate ? parseInt(toDate) : null;
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
 
-        if (offset < 0 || limit < 0 || pageNumber < 0 || limit > 100) {
+        if (offset < 0 || limit < 0 || pageNumber < 0 || limit > MAX_LIMIT_FOR_FETCHING_LIST) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         };

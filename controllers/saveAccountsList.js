@@ -1,6 +1,6 @@
 const UserSchema = require("../models/UserSchema");
 const storedAccountList = require("../models/storedAccountList");
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE, MAX_SAVE_ACCOUNT_LIMIT, USER_TYPE } = require("../constants/app.constants");
 
 const saveAccountsList = async (request, response) => {
     try {
@@ -25,9 +25,9 @@ const saveAccountsList = async (request, response) => {
             return;
         };
 
-        // max limit 15 for each user account for now.
+        // max limit is 10 for a users of type = "USER".
         const { accounts: userSavedAccountsInDB } = isAUser;
-        if (userSavedAccountsInDB && userSavedAccountsInDB.length === 15) {
+        if (isAUser.type === USER_TYPE.USER && userSavedAccountsInDB?.length === MAX_SAVE_ACCOUNT_LIMIT) {
             response.status(507).send({
                 error: API_RESPONSE_CODE[507],
             });

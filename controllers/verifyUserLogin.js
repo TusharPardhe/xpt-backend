@@ -32,7 +32,7 @@ const verifyUserLogin = async (request, response) => {
 
         if (isValidPassword) {
             const token = jwt.sign({ userName: savedUserData.userName }, process.env.TOKEN_KEY, { expiresIn: "84h" });
-            response.status(200).send({ token, userName: savedUserData.userName, xrplAddress: savedUserData.address });
+            response.status(200).send({ token, userName: savedUserData.userName, xrplAddress: savedUserData.address, type: savedUserData.type });
         } else {
             response.status(403).send({ error: API_RESPONSE_CODE[403] });
         }

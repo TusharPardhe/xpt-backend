@@ -1,10 +1,28 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+const { convertHexToString } = require('xrpl');
 const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../constants/app.constants");
+
+const getTokenName = (value) => value.length === 40 ? convertHexToString(value).replaceAll("\u0000", "") : value;
+
+const compareCurrencyName = (searchValue, currency) => {
+    if (!(searchValue && currency)) {
+        return false;
+    }
+
+    currency = getTokenName(currency).toLowerCase();
+    searchValue = searchValue.toLowerCase();
+
+    if (currency.includes(searchValue)) {
+        return true;
+    };
+
+    return false;
+}
 
 const fetchXrplFungibleTokenList = async (request, response) => {
 
     try {
-        let { query: { offset, limit, pageNumber } } = request;
+        let { query: { offset, limit, pageNumber, searchValue } } = request;
         offset = offset ? parseInt(offset) : 0;
         limit = limit ? parseInt(limit) : 100;
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
@@ -14,22 +32,25 @@ const fetchXrplFungibleTokenList = async (request, response) => {
             return;
         };
 
-        const data = await fetch(`https://api.onthedex.live/public/v1/aggregator`).then((res) => { return res.json(); });
+        let data = await fetch(`https://s1.xrplmeta.org/tokens`).then((res) => { return res.json(); });
 
-        if (!(data && data.tokens)) {
+        if (searchValue) {
+            data = data.filter(({ currency }) => compareCurrencyName(searchValue, currency))
+        }
+
+        if (!(data)) {
             response.status(500).send({ error: API_RESPONSE_CODE[500] });
             return;
         };
 
         // slicing array based on query params
-        const totalTokenList = data.tokens;
         const startingIndex = pageNumber * limit + offset;
         const endingIndex = limit + startingIndex;
-        const filteredTokenList = totalTokenList.slice(startingIndex, endingIndex);
+        const filteredTokenList = data.slice(startingIndex, endingIndex);
 
         response.status(200).send({
             filteredCount: filteredTokenList.length,
-            totalCount: totalTokenList.length,
+            totalCount: data.length,
             list: filteredTokenList,
         });
 

@@ -11,6 +11,7 @@ const verifyJwt = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.TOKEN_KEY);
+        delete req.body.token;
         if (req.body.userName === decoded.userName) {
             req.body.authenticated = true;
         } else {

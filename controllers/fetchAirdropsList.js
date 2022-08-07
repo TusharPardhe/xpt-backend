@@ -33,19 +33,8 @@ const fetchAirdropsList = async (request, response) => {
         // getting useful information
         let airdropsList = list
             ? list.map((airdrop) => {
-                const {
-                    projectName,
-                    ticker,
-                    currencyName,
-                    date,
-                    issuer,
-                    addedByAccount,
-                    blackholed,
-                    noFreeze,
-                    links,
-                    description,
-                    show,
-                } = airdrop;
+                const { projectName, ticker, currencyName, date, issuer, logo, addedByAccount, blackholed, noFreeze, links, description, show } =
+                    airdrop;
                 const details = {
                     projectName,
                     ticker,
@@ -57,6 +46,7 @@ const fetchAirdropsList = async (request, response) => {
                     noFreeze,
                     links,
                     description,
+                    logo,
                 };
 
                 if (show) {

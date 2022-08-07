@@ -6,14 +6,14 @@ const deleteSavedAccount = async (request, response) => {
         if (!request.body) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
-        };
+        }
 
         const { userName, account } = request.body;
         const schemaFilter = { userName };
         if (!(userName && account)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
-        };
+        }
 
         const userDataFromDB = await storedAccountList.findOne(schemaFilter);
 
@@ -22,25 +22,24 @@ const deleteSavedAccount = async (request, response) => {
                 error: API_RESPONSE_CODE[404],
             });
             return;
-        };
+        }
 
         if (userDataFromDB.userName === account) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
-        };
+        }
 
-        const savedUserAccountsFromDB = userDataFromDB.accounts;
-        delete savedUserAccountsFromDB[account];
+        const updatedAccountList = userDataFromDB.accounts;
+        delete updatedAccountList[account];
 
         await storedAccountList.updateOne(schemaFilter, {
             userName,
-            accounts: savedUserAccountsFromDB,
+            accounts: updatedAccountList,
         });
 
         response.status(200).send({
-            list: userDataFromDB.accounts
+            list: updatedAccountList,
         });
-
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: API_RESPONSE_CODE[500] });

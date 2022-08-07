@@ -8,6 +8,7 @@ const storedAccountList = new mongoose.Schema({
     accounts: {
         type: Object,
         required: [true, "XRPL accounts data missing."],
+        default: {},
     },
 });
 

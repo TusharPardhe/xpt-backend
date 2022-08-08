@@ -20,7 +20,6 @@ router.post("/accounts", decryptJSON, verifyJwt, fetchUserSavedAccounts);
 router.post("/account/transactions", decryptJSON, verifyJwt, fetchAccountTransactions);
 router.get("/validate/xrplAccount", verifyUserAddressViaXumm);
 router.get("/validate/uuid", verifyXummUUID);
-
 router.post("/donate", xummQRDonation);
 
 module.exports = router;

@@ -9,6 +9,8 @@ const deleteSavedAccount = require("../controllers/deleteSavedAccount");
 const fetchUserSavedAccounts = require("../controllers/fetchUserSavedAccounts");
 const fetchAccountTransactions = require("../controllers/fetchAccountTransactions");
 const xummQRDonation = require("../controllers/xummQRDonation");
+const verifyUserAddressViaXumm = require("../controllers/verifyUserAddressViaXumm");
+const verifyXummUUID = require("../controllers/verifyXummUUID");
 
 router.post("/save/accounts", decryptJSON, verifyJwt, saveAccountsList);
 router.post("transactions", decryptJSON, verifyJwt);
@@ -16,6 +18,8 @@ router.post("/delete/account", decryptJSON, verifyJwt, deleteSavedAccount);
 router.post("/account/details", decryptJSON, verifyJwt, fetchXrplAccountDetails);
 router.post("/accounts", decryptJSON, verifyJwt, fetchUserSavedAccounts);
 router.post("/account/transactions", decryptJSON, verifyJwt, fetchAccountTransactions);
+router.get("/validate/xrplAccount", verifyUserAddressViaXumm);
+router.get("/validate/uuid", verifyXummUUID);
 
 router.post("/donate", xummQRDonation);
 

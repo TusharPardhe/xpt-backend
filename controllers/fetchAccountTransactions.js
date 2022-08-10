@@ -1,4 +1,4 @@
-const {} = require("xrpl");
+const { Client } = require("xrpl");
 
 const { API_RESPONSE_CODE } = require("../constants/app.constants");
 
@@ -12,7 +12,7 @@ const fetchAccountTransactions = async (request, response) => {
         let { account, userName, limit, ...otherParams } = request.body;
         limit = limit ?? 25;
 
-        const client = new (process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
         await client.connect();
 
         if (!(account && limit)) {

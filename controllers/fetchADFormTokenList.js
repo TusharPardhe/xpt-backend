@@ -56,6 +56,8 @@ const fetchADFormTokenList = async (request, response) => {
         const xrpl_currency_list = Object.keys(currencies).map((a) => ({ key: a, value: a, text: a }));
 
         response.status(200).send({ currencies: xrpl_currency_list, message: "" });
+        await client.disconnect();
+        
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: API_RESPONSE_CODE[500] });

@@ -1,8 +1,9 @@
 const { Client, convertHexToString } = require("xrpl");
-const Airdrop = require("../models/Airdrop");
-const UserSchema = require("../models/UserSchema");
 
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const Airdrop = require("../../models/Airdrop");
+const UserSchema = require("../../models/UserSchema");
+
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const fetchADFormTokenList = async (request, response) => {
     if (!request.body) {

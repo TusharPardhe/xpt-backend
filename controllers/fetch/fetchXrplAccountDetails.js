@@ -1,6 +1,7 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { Client } = require("xrpl");
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const fetchXrplAccountDetails = async (request, response) => {
 

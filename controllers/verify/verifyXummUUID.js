@@ -1,5 +1,5 @@
 const fetch = (...args) => import("node-fetch").then(({ default: fetch }) => fetch(...args));
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const verifyXummUUID = async (request, response) => {
     try {

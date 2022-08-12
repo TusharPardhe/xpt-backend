@@ -1,7 +1,8 @@
 const { Client } = require("xrpl");
-const Airdrop = require("../models/Airdrop");
 
-const { API_RESPONSE_CODE, XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES } = require("../constants/app.constants");
+const Airdrop = require("../../models/Airdrop");
+
+const { API_RESPONSE_CODE, XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES } = require("../../constants/app.constants");
 const { DISABLE_MASTER_KEY, NO_FREEZE } = XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES
 
 const storeAirdropDetails = async (request, response) => {

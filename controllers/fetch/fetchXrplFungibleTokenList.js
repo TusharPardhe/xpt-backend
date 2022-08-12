@@ -1,6 +1,7 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { convertHexToString } = require('xrpl');
-const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../constants/app.constants");
+
+const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../../constants/app.constants");
 
 const getTokenName = (value) => value.length === 40 ? convertHexToString(value).replaceAll("\u0000", "") : value;
 

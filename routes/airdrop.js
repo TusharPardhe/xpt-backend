@@ -3,9 +3,9 @@ const router = express.Router();
 
 const decryptJSON = require("../middlewares/decryptRequest");
 const verifyJwt = require("../middlewares/verifyJwt");
-const fetchAirdropsList = require("../controllers/fetchAirdropsList");
-const storeAirdropDetails = require("../controllers/storeAirdropDetails");
-const fetchADFormTokenList = require("../controllers/fetchADFormTokenList");
+const fetchAirdropsList = require("../controllers/fetch/fetchAirdropsList");
+const storeAirdropDetails = require("../controllers/save/storeAirdropDetails");
+const fetchADFormTokenList = require("../controllers/fetch/fetchADFormTokenList");
 
 router.get("/list", fetchAirdropsList);
 router.post("/add", decryptJSON, verifyJwt, storeAirdropDetails);

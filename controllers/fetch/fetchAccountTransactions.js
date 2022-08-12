@@ -1,6 +1,6 @@
 const { Client } = require("xrpl");
 
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const fetchAccountTransactions = async (request, response) => {
     try {

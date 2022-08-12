@@ -3,14 +3,14 @@ const router = express.Router();
 
 const verifyJwt = require("../middlewares/verifyJwt");
 const decryptJSON = require("../middlewares/decryptRequest");
-const fetchXrplAccountDetails = require("../controllers/fetchXrplAccountDetails");
-const saveAccountsList = require("../controllers/saveAccountsList");
-const deleteSavedAccount = require("../controllers/deleteSavedAccount");
-const fetchUserSavedAccounts = require("../controllers/fetchUserSavedAccounts");
-const fetchAccountTransactions = require("../controllers/fetchAccountTransactions");
-const xummQRDonation = require("../controllers/xummQRDonation");
-const verifyUserAddressViaXumm = require("../controllers/verifyUserAddressViaXumm");
-const verifyXummUUID = require("../controllers/verifyXummUUID");
+const fetchXrplAccountDetails = require("../controllers/fetch/fetchXrplAccountDetails");
+const saveAccountsList = require("../controllers/save/saveAccountsList");
+const deleteSavedAccount = require("../controllers/delete/deleteSavedAccount");
+const fetchUserSavedAccounts = require("../controllers/fetch/fetchUserSavedAccounts");
+const fetchAccountTransactions = require("../controllers/fetch/fetchAccountTransactions");
+const xummQRDonation = require("../controllers/verify/xummQRDonation");
+const verifyUserAddressViaXumm = require("../controllers/verify/verifyUserAddressViaXumm");
+const verifyXummUUID = require("../controllers/verify/verifyXummUUID");
 
 router.post("/save/accounts", decryptJSON, verifyJwt, saveAccountsList);
 router.post("transactions", decryptJSON, verifyJwt);

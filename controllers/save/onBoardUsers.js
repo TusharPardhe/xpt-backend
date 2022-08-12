@@ -1,7 +1,7 @@
 const { Client } = require("xrpl");
 
-const UserSchema = require("../models/UserSchema");
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const UserSchema = require("../../models/UserSchema");
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const onBoardUsers = async (request, response) => {
     try {

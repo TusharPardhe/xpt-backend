@@ -1,5 +1,5 @@
-const Airdrop = require("../models/Airdrop");
-const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../constants/app.constants");
+const Airdrop = require("../../models/Airdrop");
+const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../../constants/app.constants");
 
 const fetchAirdropsList = async (request, response) => {
     try {

@@ -1,7 +1,7 @@
-const UserSchema = require("../models/UserSchema");
-const storedAccountList = require("../models/storedAccountList");
+const UserSchema = require("../../models/UserSchema");
+const storedAccountList = require("../../models/storedAccountList");
 
-const { API_RESPONSE_CODE, MAX_SAVE_ACCOUNT_LIMIT, USER_TYPE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE, MAX_SAVE_ACCOUNT_LIMIT, USER_TYPE } = require("../../constants/app.constants");
 
 const saveAccountsList = async (request, response) => {
     try {

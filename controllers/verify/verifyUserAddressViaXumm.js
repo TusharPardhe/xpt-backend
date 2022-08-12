@@ -1,6 +1,6 @@
 const { XummSdk } = require("xumm-sdk");
 
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const verifyUserAddressViaXumm = async (request, response) => {
     try {

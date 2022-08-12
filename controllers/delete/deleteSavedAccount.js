@@ -1,5 +1,5 @@
-const storedAccountList = require("../models/storedAccountList");
-const { API_RESPONSE_CODE } = require("../constants/app.constants");
+const storedAccountList = require("../../models/storedAccountList");
+const { API_RESPONSE_CODE } = require("../../constants/app.constants");
 
 const deleteSavedAccount = async (request, response) => {
     try {

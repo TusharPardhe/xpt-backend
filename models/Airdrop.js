@@ -35,6 +35,10 @@ const Airdrop = new mongoose.Schema({
     noFreeze: {
         type: Boolean,
     },
+    maxSupply: {
+        type: String,
+        default: "",
+    },
     links: {
         type: Array,
         default: [],

@@ -38,13 +38,16 @@ const fetchADFormTokenList = async (request, response) => {
 
         const currencies = {};
         Object.keys(gateway_balances.result.obligations).forEach((currency) => {
-            currency = currency.length === 40 ? convertHexToString(currency).replaceAll("\u0000", "") : currency;
-            currencies[currency] = userFromDB.address;
+            let c = currency.length === 40 ? convertHexToString(currency).replaceAll("\u0000", "") : currency;
+            currencies[c] = {
+                issuer: userFromDB.address,
+                limit: gateway_balances.result.obligations[currency],
+            }
         });
 
         if (existingADs && existingADs.length > 0) {
             existingADs.forEach((AD) => {
-                if (currencies[AD.ticker] && currencies[AD.ticker] === AD.issuer) {
+                if (currencies[AD.ticker] && currencies[AD.ticker].issuer === AD.issuer) {
                     delete currencies[AD.ticker];
                 }
             });
@@ -54,7 +57,7 @@ const fetchADFormTokenList = async (request, response) => {
             return response.status(200).send({ currencies: [], message: "You've already submitted your requests." });
         }
 
-        const xrpl_currency_list = Object.keys(currencies).map((a) => ({ key: a, value: a, text: a }));
+        const xrpl_currency_list = Object.keys(currencies).map((a) => ({ key: a, value: a, text: a, limit: currencies[a].limit }));
 
         response.status(200).send({ currencies: xrpl_currency_list, message: "" });
         await client.disconnect();

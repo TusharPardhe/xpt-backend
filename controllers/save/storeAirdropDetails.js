@@ -14,7 +14,7 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        let { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, noFreeze, links, description, logo } = body;
+        let { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, noFreeze, links, description, logo, maxSupply } = body;
 
         if (!(projectName && ticker && currencyName && date && issuer && addedByAccount)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
@@ -46,7 +46,7 @@ const storeAirdropDetails = async (request, response) => {
             const accountFlags = issuerAccountDetails.result.account_data.Flags;
             blackholed = !!(DISABLE_MASTER_KEY && accountFlags);
             noFreeze = !!(NO_FREEZE && accountFlags);
-        }
+        };
 
         const dataToStore = {
             projectName,
@@ -61,6 +61,7 @@ const storeAirdropDetails = async (request, response) => {
             logo,
             description,
             show: true,
+            maxSupply,
         };
 
         const airdrop = new Airdrop(dataToStore);

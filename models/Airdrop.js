@@ -40,8 +40,8 @@ const Airdrop = new mongoose.Schema({
         default: "",
     },
     links: {
-        type: Array,
-        default: [],
+        type: Object,
+        default: {},
     },
     description: {
         type: String,

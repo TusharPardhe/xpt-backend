@@ -8,7 +8,7 @@ const saveAccountsList = require("../controllers/save/saveAccountsList");
 const deleteSavedAccount = require("../controllers/delete/deleteSavedAccount");
 const fetchUserSavedAccounts = require("../controllers/fetch/fetchUserSavedAccounts");
 const fetchAccountTransactions = require("../controllers/fetch/fetchAccountTransactions");
-const xummTransaction = require("../controllers/verify/xummTransaction");
+const xummTransaction = require("../controllers/send/xummTransaction");
 const verifyUserAddressViaXumm = require("../controllers/verify/verifyUserAddressViaXumm");
 const verifyXummUUID = require("../controllers/verify/verifyXummUUID");
 

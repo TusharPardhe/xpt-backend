@@ -36,28 +36,27 @@ const fetchADFormTokenList = async (request, response) => {
                 .send({ currencies: [], message: "Token issuers can request for an airdrop listing. Please login using an issuer account." });
         }
 
+        if (existingADs && existingADs.length > 0) {
+            existingADs.forEach((AD) => {
+                delete gateway_balances.result.obligations[AD.ticker];
+            });
+        };
+
         const currencies = {};
         Object.keys(gateway_balances.result.obligations).forEach((currency) => {
             let c = currency.length === 40 ? convertHexToString(currency).replaceAll("\u0000", "") : currency;
             currencies[c] = {
                 issuer: userFromDB.address,
                 limit: gateway_balances.result.obligations[currency],
+                hex: currency
             }
         });
-
-        if (existingADs && existingADs.length > 0) {
-            existingADs.forEach((AD) => {
-                if (currencies[AD.ticker] && currencies[AD.ticker].issuer === AD.issuer) {
-                    delete currencies[AD.ticker];
-                }
-            });
-        }
 
         if (!currencies || Object.keys(currencies).length === 0) {
             return response.status(200).send({ currencies: [], message: "You've already submitted your requests." });
         }
 
-        const xrpl_currency_list = Object.keys(currencies).map((a) => ({ key: a, value: a, text: a, limit: currencies[a].limit }));
+        const xrpl_currency_list = Object.keys(currencies).map((a) => ({ key: a, value: currencies[a].hex, text: a, limit: currencies[a].limit }));
 
         response.status(200).send({ currencies: xrpl_currency_list, message: "" });
         await client.disconnect();

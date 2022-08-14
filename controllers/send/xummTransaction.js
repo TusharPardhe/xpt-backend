@@ -16,7 +16,7 @@ const xummTransaction = async (request, response) => {
         const Sdk = new XummSdk(process.env.XUMM_API_KEY, process.env.XUMM_API_SECRET)
         const { txJSON } = body;
 
-        if (!txJSON) {
+        if (!txJSON || Object.keys(txJSON).length === 0) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         };

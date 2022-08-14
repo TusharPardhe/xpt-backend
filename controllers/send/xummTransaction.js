@@ -22,7 +22,7 @@ const xummTransaction = async (request, response) => {
         };
 
         const payload = await Sdk.payload.create(txJSON, true);
-        response.status(200).send({ png: payload.refs.qr_png });
+        response.status(200).send(payload);
 
     } catch (err) {
         console.log(err);

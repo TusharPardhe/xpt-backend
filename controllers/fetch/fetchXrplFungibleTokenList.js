@@ -30,7 +30,7 @@ const fetchXrplFungibleTokenList = async (request, response) => {
             return;
         }
 
-        let data = await fetch(`https://s1.xrplmeta.org/tokens?limit=${apiLimit}&sort_by=${sort_by}`).then((res) => {
+        let { tokens: data } = await fetch(`https://s1.xrplmeta.org/tokens?limit=${apiLimit}&sort_by=${sort_by}`).then((res) => {
             return res.json();
         });
 

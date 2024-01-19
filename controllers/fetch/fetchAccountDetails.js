@@ -21,9 +21,15 @@ const fetchAccountDetails = async (req, res) => {
                 command: 'account_info',
                 account: address,
             })
-            .catch((err) => err.error === 'actNotFound');
+            .catch((err) => {
+                if (err.data.error === 'actNotFound') {
+                    return true;
+                }
+                return false;
+            });
 
         if (newAccount) {
+            await client.disconnect();
             return res.status(200).send({
                 isApprover: false,
                 totalNumberOfEscrows: 0,

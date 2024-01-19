@@ -16,14 +16,27 @@ const fetchAccountDetails = async (req, res) => {
         const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
         await client.connect();
 
-        const [isApprover, totalNumberOfEscrows, account_info, gateway_balances, account_lines] = await Promise.all([
+        const newAccount = await client
+            .request({
+                command: 'account_info',
+                account: address,
+            })
+            .catch((err) => err.error === 'actNotFound');
+
+        if (newAccount) {
+            return res.status(200).send({
+                isApprover: false,
+                totalNumberOfEscrows: 0,
+                suitCoinBalance: 0,
+                issuedCurrencies: [],
+                xrpBalance: 0,
+                newAccount: true,
+            });
+        }
+
+        const [isApprover, totalNumberOfEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
             Approver.findOne({ address }),
             Escrow.countDocuments({ completed: false }),
-            client.request({
-                command: 'account_info',
-                ledger_index: 'validated',
-                account: address,
-            }),
             client.request({
                 command: 'gateway_balances',
                 ledger_index: 'validated',
@@ -34,6 +47,7 @@ const fetchAccountDetails = async (req, res) => {
                 ledger_index: 'validated',
                 account: address,
             }),
+            fetch(`https://api.xrpscan.com/api/v1/account/${address}`).then((res) => res.json()),
         ]);
 
         const suitCoin = account_lines.result.lines.find(
@@ -45,8 +59,8 @@ const fetchAccountDetails = async (req, res) => {
             totalNumberOfEscrows,
             suitCoinBalance: suitCoin ? suitCoin.balance : 0,
             issuedCurrencies: gateway_balances.result.obligations,
-            accountInfo: account_info.result.account_data,
-            xrpBalance: account_info.result.account_data.Balance,
+            xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
+            newAccount: false,
         };
 
         res.status(200).send(accountData);

@@ -21,6 +21,9 @@ const fetchAccountDetails = async (req, res) => {
                 command: 'account_info',
                 account: address,
             })
+            .then((res) => {
+                return false;
+            })
             .catch((err) => {
                 if (err.data.error === 'actNotFound') {
                     return true;

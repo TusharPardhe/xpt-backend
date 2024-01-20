@@ -66,7 +66,7 @@ const fetchAccountDetails = async (req, res) => {
         const accountData = {
             isApprover: !!isApprover,
             totalNumberOfEscrows,
-            suitCoinBalance: suitCoin ? suitCoin.balance : 0,
+            suitCoinBalance: suitCoin ? parseFloat(suitCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,
             xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
             newAccount: false,

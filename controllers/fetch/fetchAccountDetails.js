@@ -63,9 +63,22 @@ const fetchAccountDetails = async (req, res) => {
             (line) => line.currency === process.env.SUIT_COIN_HEX && line.account === process.env.SUIT_COIN_ISSUER
         );
 
+        if (address === process.env.SUIT_COIN_ISSUER) {
+            return res.status(200).send({
+                isApprover: true,
+                totalNumberOfEscrows,
+                hasSuitCoinTrustline: true,
+                suitCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.SUIT_COIN_HEX).balance,
+                issuedCurrencies: gateway_balances.result.obligations,
+                xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
+                newAccount: false,
+            });
+        }
+
         const accountData = {
             isApprover: !!isApprover,
             totalNumberOfEscrows,
+            hasSuitCoinTrustline: !!suitCoin,
             suitCoinBalance: suitCoin ? parseFloat(suitCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,
             xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
@@ -76,7 +89,7 @@ const fetchAccountDetails = async (req, res) => {
         await client.disconnect();
     } catch (err) {
         console.error(err);
-        res.status(500).send({ error: API_RESPONSE_CODE[500] });
+        res.status(500).send({ error: 'Internal Server Error' });
     }
 };
 

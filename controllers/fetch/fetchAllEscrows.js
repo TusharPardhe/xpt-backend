@@ -1,3 +1,4 @@
+const { APPROVER_NAMES } = require('../../constants/app.constants');
 const Approver = require('../../models/Approver');
 const Escrow = require('../../models/Escrow');
 
@@ -21,7 +22,17 @@ const fetchAllEscrows = async (req, res) => {
             query.id = id;
         }
 
-        const escrows = await Escrow.find(query).skip(skip).limit(limit).sort({ _id: -1 });
+        let sortCriteria = { _id: -1 }; // Default sorting by _id
+        if (req.query.sortBy === 'time') {
+            sortCriteria = { time: 1 }; // Sort by time in ascending order
+        }
+
+        let escrows = await Escrow.find(query).skip(skip).limit(limit).sort(sortCriteria);
+        escrows = escrows.map((escrow) => ({
+            ...escrow,
+            approvedBy: APPROVER_NAMES[escrow.approvedBy] ?? escrow.approvedBy,
+            createdBy: APPROVER_NAMES[escrow.createdBy] ?? escrow.createdBy,
+        }));
         // count all documents by query
         const total = await Escrow.countDocuments(query);
 

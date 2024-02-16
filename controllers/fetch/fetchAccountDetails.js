@@ -45,7 +45,7 @@ const fetchAccountDetails = async (req, res) => {
 
         const [isApprover, totalNumberOfEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
             Approver.findOne({ address }),
-            Escrow.countDocuments({ completed: false }),
+            Escrow.countDocuments({ completed: false, address }),
             client.request({
                 command: 'gateway_balances',
                 ledger_index: 'validated',

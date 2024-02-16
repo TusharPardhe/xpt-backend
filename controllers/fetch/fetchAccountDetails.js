@@ -43,7 +43,7 @@ const fetchAccountDetails = async (req, res) => {
             });
         }
 
-        const [isApprover, totalNumberOfEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
+        let [isApprover, totalNumberOfEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
             Approver.findOne({ address }),
             Escrow.countDocuments({ completed: false, address }),
             client.request({
@@ -73,6 +73,10 @@ const fetchAccountDetails = async (req, res) => {
                 xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
                 newAccount: false,
             });
+        }
+
+        if (!!isApprover) {
+            totalNumberOfEscrows = await Escrow.countDocuments({ completed: false });
         }
 
         const accountData = {

@@ -28,11 +28,21 @@ const fetchAllEscrows = async (req, res) => {
         }
 
         let escrows = await Escrow.find(query).skip(skip).limit(limit).sort(sortCriteria);
-        escrows = escrows.map((escrow) => ({
-            ...escrow,
-            approvedBy: APPROVER_NAMES[escrow.approvedBy] ?? escrow.approvedBy,
-            createdBy: APPROVER_NAMES[escrow.createdBy] ?? escrow.createdBy,
-        }));
+        escrows = escrows.map(({ _doc: escrow }) => {
+            let approvers = escrow.approvedBy;
+            if (approvers?.length > 0) {
+                approvers = approvers.map((approver) => {
+                    return APPROVER_NAMES[approver] ?? approver;
+                });
+            }
+
+            return {
+                ...escrow,
+                approvedBy: approvers,
+                createdBy: APPROVER_NAMES[escrow.createdBy] ?? escrow.createdBy,
+            };
+        });
+
         // count all documents by query
         const total = await Escrow.countDocuments(query);
 

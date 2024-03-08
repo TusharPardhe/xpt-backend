@@ -1,9 +1,9 @@
 const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const { convertHexToString } = require('xrpl');
 
-const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require("../../constants/app.constants");
+const { API_RESPONSE_CODE, MAX_LIMIT_FOR_FETCHING_LIST } = require('../../constants/app.constants');
 
-const getTokenName = (value) => value.length === 40 ? convertHexToString(value).replaceAll("\u0000", "") : value;
+const getTokenName = (value) => (value.length === 40 ? convertHexToString(value).replaceAll('\u0000', '') : value);
 
 const compareCurrencyName = (searchValue, currency) => {
     if (!(searchValue && currency)) {
@@ -21,7 +21,7 @@ const fetchXrplFungibleTokenList = async (request, response) => {
         } = request;
         offset = offset ? parseInt(offset) : 0;
         limit = limit ? parseInt(limit) : 100;
-        sort_by = sort_by ?? "trustlines";
+        sort_by = sort_by ?? 'trustlines';
         apiLimit = apiLimit ?? 100;
         pageNumber = pageNumber ? parseInt(pageNumber) - 1 : 0;
 
@@ -29,7 +29,6 @@ const fetchXrplFungibleTokenList = async (request, response) => {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
         }
-
         let { tokens: data } = await fetch(`https://s1.xrplmeta.org/tokens?limit=${apiLimit}&sort_by=${sort_by}`).then((res) => {
             return res.json();
         });

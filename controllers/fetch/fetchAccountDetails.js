@@ -43,8 +43,9 @@ const fetchAccountDetails = async (req, res) => {
             });
         }
 
-        let [isApprover, totalNumberOfEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
+        let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
             Approver.findOne({ address }),
+            Escrow.countDocuments({ completed: true, address }),
             Escrow.countDocuments({ completed: false, address }),
             client.request({
                 command: 'gateway_balances',
@@ -66,7 +67,12 @@ const fetchAccountDetails = async (req, res) => {
         if (address === process.env.SUIT_COIN_ISSUER) {
             return res.status(200).send({
                 isApprover: true,
-                totalNumberOfEscrows,
+                escrowCount: {
+                    total: totalCompletedEscrows + totalPendingEscrows,
+                    completed: totalCompletedEscrows,
+                    outstanding: totalPendingEscrows,
+                },
+                totalPendingEscrows,
                 hasSuitCoinTrustline: true,
                 suitCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.SUIT_COIN_HEX).balance,
                 issuedCurrencies: gateway_balances.result.obligations,
@@ -76,12 +82,17 @@ const fetchAccountDetails = async (req, res) => {
         }
 
         if (!!isApprover) {
-            totalNumberOfEscrows = await Escrow.countDocuments({ completed: false });
+            totalCompletedEscrows = await Escrow.countDocuments({ completed: true });
+            totalPendingEscrows = await Escrow.countDocuments({ completed: false });
         }
 
         const accountData = {
             isApprover: !!isApprover,
-            totalNumberOfEscrows,
+            escrowCount: {
+                total: totalCompletedEscrows + totalPendingEscrows,
+                completed: totalCompletedEscrows,
+                outstanding: totalPendingEscrows,
+            },
             hasSuitCoinTrustline: !!suitCoin,
             suitCoinBalance: suitCoin ? parseFloat(suitCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,

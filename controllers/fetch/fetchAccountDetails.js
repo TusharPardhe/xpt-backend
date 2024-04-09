@@ -6,7 +6,7 @@ const Approver = require('../../models/Approver');
 const Escrow = require('../../models/Escrow');
 
 const fetchAccountDetails = async (req, res) => {
-    const { address } = req.query;
+    const { address, trustlineLimit } = req.query;
 
     if (!address) {
         return res.status(400).send({ error: API_RESPONSE_CODE[400] });
@@ -40,6 +40,7 @@ const fetchAccountDetails = async (req, res) => {
                 issuedCurrencies: [],
                 xrpBalance: 0,
                 newAccount: true,
+                trustLines: [],
             });
         }
 
@@ -56,6 +57,7 @@ const fetchAccountDetails = async (req, res) => {
                 command: 'account_lines',
                 ledger_index: 'validated',
                 account: address,
+                limit: trustlineLimit ? parseInt(trustlineLimit) : 200,
             }),
             fetch(`https://api.xrpscan.com/api/v1/account/${address}`).then((res) => res.json()),
         ]);
@@ -78,6 +80,7 @@ const fetchAccountDetails = async (req, res) => {
                 issuedCurrencies: gateway_balances.result.obligations,
                 xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
                 newAccount: false,
+                trustLines: account_lines.result.lines ?? [],
             });
         }
 
@@ -98,6 +101,7 @@ const fetchAccountDetails = async (req, res) => {
             issuedCurrencies: gateway_balances.result.obligations,
             xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
             newAccount: false,
+            trustLines: account_lines.result.lines ?? [],
         };
 
         res.status(200).send(accountData);

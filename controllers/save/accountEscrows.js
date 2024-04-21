@@ -11,6 +11,12 @@ const accountEscrows = async (req, res) => {
             throw new Error('Missing parameters');
         }
 
+        const approver = await Approver.findOne({ address: approvedBy });
+
+        if (!approver) {
+            throw new Error('Approver not found');
+        }
+
         // Save new escrow
         const newId = uuidv4();
         await Escrow.create({

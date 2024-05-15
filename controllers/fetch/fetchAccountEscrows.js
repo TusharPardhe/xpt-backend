@@ -2,7 +2,7 @@ const Escrow = require('../../models/Escrow');
 
 const fetchAccountEscrows = async (req, res) => {
     try {
-        const { address, id } = req.body;
+        const { address, id, completed } = req.body;
         let { page, limit } = req.body;
 
         if (!address) {
@@ -16,6 +16,10 @@ const fetchAccountEscrows = async (req, res) => {
         let query = { address };
         if (id) {
             query.id = id;
+        }
+
+        if (completed) {
+            query.completed = completed;
         }
 
         // Query with Pagination

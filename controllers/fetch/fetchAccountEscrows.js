@@ -5,7 +5,7 @@ const fetchAccountEscrows = async (req, res) => {
         const { address, id, completed } = req.body;
         let { page, limit } = req.body;
 
-        if (!address) {
+        if (!address || address === '') {
             throw new Error('Missing address parameter');
         }
 

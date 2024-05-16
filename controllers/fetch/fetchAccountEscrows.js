@@ -1,3 +1,4 @@
+const { API_RESPONSE_CODE } = require('../../constants/app.constants');
 const Escrow = require('../../models/Escrow');
 
 const fetchAccountEscrows = async (req, res) => {
@@ -6,7 +7,7 @@ const fetchAccountEscrows = async (req, res) => {
         let { page, limit } = req.body;
 
         if (!address || address === '') {
-            throw new Error('Missing address parameter');
+            return res.status(400).send({ error: API_RESPONSE_CODE[400] });
         }
 
         page = parseInt(page, 10) || 1;

@@ -6,6 +6,11 @@ const fetchAllEscrows = async (req, res) => {
     try {
         // Pagination Parameters
         let { page, limit, address, id } = req.query;
+
+        if (!address || address === '') {
+            return res.status(400).send({ error: 'Bad request' });
+        }
+
         page = parseInt(page, 10) || 1;
         limit = parseInt(limit, 10) || 100;
         const skip = (page - 1) * limit;

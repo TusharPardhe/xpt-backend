@@ -5,7 +5,7 @@ const Escrow = require('../../models/Escrow');
 const fetchAllEscrows = async (req, res) => {
     try {
         // Pagination Parameters
-        let { page, limit, address, id } = req.query;
+        let { page, limit, address, id, completed } = req.query;
 
         if (!address || address === '') {
             return res.status(400).send({ error: 'Bad request' });
@@ -25,6 +25,10 @@ const fetchAllEscrows = async (req, res) => {
 
         if (id) {
             query.id = id;
+        }
+
+        if (completed !== undefined) {
+            query.completed = completed;
         }
 
         let sortCriteria = { _id: -1 }; // Default sorting by _id

@@ -17,6 +17,7 @@ const fetchAccountEscrows = require('../controllers/fetch/fetchAccountEscrows');
 const fetchAccountDetails = require('../controllers/fetch/fetchAccountDetails');
 const sendEscrowTransactions = require('../controllers/send/sendEscrowTransactions');
 const updateEscrow = require('../controllers/update/updateEscrow');
+const sendJwt = require('../controllers/send/sendJwt');
 
 router.post('/save/accounts', decryptJSON, verifyJwt, saveAccountsList);
 router.post('transactions', decryptJSON, verifyJwt);
@@ -27,6 +28,7 @@ router.post('/account/transactions', decryptJSON, verifyJwt, fetchAccountTransac
 router.get('/validate/xrplAccount', verifyUserAddressViaXumm);
 router.get('/validate/uuid', verifyXummUUID);
 router.post('/xumm/transaction', xummTransaction);
+router.post('/signIn', sendJwt);
 
 router.post('/account/escrow', fetchAccountEscrows);
 router.get('/escrows', fetchAllEscrows);

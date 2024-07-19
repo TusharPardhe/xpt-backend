@@ -44,10 +44,8 @@ const fetchTreasuryDetails = async (req, res) => {
 
         res.json({
             status: 'success',
-            data: {
-                userEscrowed,
-                totalEscrowed,
-            },
+            userEscrowed,
+            totalEscrowed,
         });
     } catch (err) {
         res.status(500).json({

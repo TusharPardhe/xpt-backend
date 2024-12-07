@@ -106,7 +106,10 @@ const fetchAccountDetails = async (req, res) => {
             hasSuitCoinTrustline: !!suitCoin,
             suitCoinBalance: suitCoin ? parseFloat(suitCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,
-            xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
+            xrpBalance:
+                xrpScan.xrpBalance -
+                (server_info.result.info.validated_ledger.reserve_base_xrp +
+                    server_info.result.info.validated_ledger.reserve_inc_xrp * xrpScan.ownerCount),
             newAccount: false,
             trustLines: account_lines.result.lines ?? [],
         };

@@ -44,23 +44,27 @@ const fetchAccountDetails = async (req, res) => {
             });
         }
 
-        let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, xrpScan] = await Promise.all([
-            Approver.findOne({ address }),
-            Escrow.countDocuments({ completed: true, address }),
-            Escrow.countDocuments({ completed: false, address }),
-            client.request({
-                command: 'gateway_balances',
-                ledger_index: 'validated',
-                account: address,
-            }),
-            client.request({
-                command: 'account_lines',
-                ledger_index: 'validated',
-                account: address,
-                limit: trustlineLimit ? parseInt(trustlineLimit) : 200,
-            }),
-            fetch(`https://api.xrpscan.com/api/v1/account/${address}`).then((res) => res.json()),
-        ]);
+        let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, xrpScan, server_info] =
+            await Promise.all([
+                Approver.findOne({ address }),
+                Escrow.countDocuments({ completed: true, address }),
+                Escrow.countDocuments({ completed: false, address }),
+                client.request({
+                    command: 'gateway_balances',
+                    ledger_index: 'validated',
+                    account: address,
+                }),
+                client.request({
+                    command: 'account_lines',
+                    ledger_index: 'validated',
+                    account: address,
+                    limit: trustlineLimit ? parseInt(trustlineLimit) : 200,
+                }),
+                fetch(`https://api.xrpscan.com/api/v1/account/${address}`).then((res) => res.json()),
+                client.request({
+                    command: 'server_info',
+                }),
+            ]);
 
         const suitCoin = account_lines.result.lines.find(
             (line) => line.currency === process.env.SUIT_COIN_HEX && line.account === process.env.SUIT_COIN_ISSUER
@@ -78,7 +82,10 @@ const fetchAccountDetails = async (req, res) => {
                 hasSuitCoinTrustline: true,
                 suitCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.SUIT_COIN_HEX).balance,
                 issuedCurrencies: gateway_balances.result.obligations,
-                xrpBalance: xrpScan.xrpBalance - (10 + 2 * xrpScan.ownerCount),
+                xrpBalance:
+                    xrpScan.xrpBalance -
+                    (server_info.result.info.validated_ledger.reserve_base_xrp +
+                        server_info.result.info.validated_ledger.reserve_inc_xrp * xrpScan.ownerCount),
                 newAccount: false,
                 trustLines: account_lines.result.lines ?? [],
             });

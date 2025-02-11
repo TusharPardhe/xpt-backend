@@ -20,9 +20,17 @@ const sendJwt = async (request, response) => {
             return;
         }
 
-        const token = jwt.sign({ userAddress }, process.env.TOKEN_KEY);
+        // Check user exists in our DB
 
-        response.status(200).send({ token, type: 'admin' });
+        const user = await UserSchema.findOne({ address: userAddress });
+
+        if (!user) {
+            response.status(200).send({ error: 'User Not Found' });
+            return;
+        }
+
+        const token = jwt.sign({ userAddress }, process.env.TOKEN_KEY);
+        return response.status(200).send({ token, type: 'admin' });
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: API_RESPONSE_CODE[500] });

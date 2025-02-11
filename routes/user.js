@@ -18,6 +18,11 @@ const fetchAccountDetails = require('../controllers/fetch/fetchAccountDetails');
 const sendEscrowTransactions = require('../controllers/send/sendEscrowTransactions');
 const updateEscrow = require('../controllers/update/updateEscrow');
 const sendJwt = require('../controllers/send/sendJwt');
+const fetchAccountNfts = require('../controllers/fetch/fetchAccountNfts');
+const saveNewRecord = require('../controllers/save/saveNewRecord');
+const fetchAccountRecords = require('../controllers/fetch/fetchAccountRecords');
+const fetchAllRecords = require('../controllers/fetch/fetchAllRecords');
+const fetchPatientEncryptedData = require('../controllers/fetch/fetchPatientEncryptedData');
 
 router.post('/save/accounts', decryptJSON, verifyJwt, saveAccountsList);
 router.post('transactions', decryptJSON, verifyJwt);
@@ -31,7 +36,13 @@ router.post('/xumm/transaction', xummTransaction);
 router.post('/signIn', sendJwt);
 
 router.post('/account/escrow', fetchAccountEscrows);
+router.post('/account/nfts', fetchAccountNfts);
+router.post('/account/save/record', saveNewRecord);
+router.get('/account/records', fetchAccountRecords);
+
+router.get('/records', fetchAllRecords);
 router.get('/escrows', fetchAllEscrows);
+router.get('/patient/data', fetchPatientEncryptedData);
 router.post('/save/account/escrow', accountEscrows);
 router.get('/account/details', fetchAccountDetails);
 router.get('/send/escrows', sendEscrowTransactions);

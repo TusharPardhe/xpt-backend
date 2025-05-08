@@ -36,7 +36,7 @@ const fetchAccountDetails = async (req, res) => {
             return res.status(200).send({
                 isApprover: false,
                 totalNumberOfEscrows: 0,
-                suitCoinBalance: 0,
+                revoCoinBalance: 0,
                 issuedCurrencies: [],
                 xrpBalance: 0,
                 newAccount: true,
@@ -66,11 +66,11 @@ const fetchAccountDetails = async (req, res) => {
                 }),
             ]);
 
-        const suitCoin = account_lines.result.lines.find(
-            (line) => line.currency === process.env.SUIT_COIN_HEX && line.account === process.env.SUIT_COIN_ISSUER
+        const revoCoin = account_lines.result.lines.find(
+            (line) => line.currency === process.env.REVO_COIN_HEX && line.account === process.env.REVO_COIN_ISSUER
         );
 
-        if (address === process.env.SUIT_COIN_ISSUER) {
+        if (address === process.env.REVO_COIN_ISSUER) {
             return res.status(200).send({
                 isApprover: true,
                 escrowCount: {
@@ -79,8 +79,8 @@ const fetchAccountDetails = async (req, res) => {
                     outstanding: totalPendingEscrows,
                 },
                 totalPendingEscrows,
-                hasSuitCoinTrustline: true,
-                suitCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.SUIT_COIN_HEX).balance,
+                hasRevoCoinTrustline: true,
+                revoCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.REVO_COIN_HEX).balance,
                 issuedCurrencies: gateway_balances.result.obligations,
                 xrpBalance:
                     xrpScan.xrpBalance -
@@ -103,8 +103,8 @@ const fetchAccountDetails = async (req, res) => {
                 completed: totalCompletedEscrows,
                 outstanding: totalPendingEscrows,
             },
-            hasSuitCoinTrustline: !!suitCoin,
-            suitCoinBalance: suitCoin ? parseFloat(suitCoin.balance) : 0,
+            hasRevoCoinTrustline: !!revoCoin,
+            revoCoinBalance: revoCoin ? parseFloat(revoCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,
             xrpBalance:
                 xrpScan.xrpBalance -

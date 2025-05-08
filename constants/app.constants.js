@@ -30,7 +30,7 @@ const USER_TYPE = {
 };
 
 const APPROVER_NAMES = {
-    rsuit3HsVyDUNQVKFGyeXcSBUj6EjEbJmh: 'Rian Taylor',
+    rEVovScTRfeY82H3V3sGsXA97ewWicnPL5: 'Rian Taylor',
 };
 
 module.exports = {

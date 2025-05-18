@@ -1,6 +1,6 @@
-const { Client } = require("xrpl");
+const { Client } = require('xrpl');
 
-const { API_RESPONSE_CODE } = require("../../constants/app.constants");
+const { API_RESPONSE_CODE } = require('../../constants/app.constants');
 
 const fetchAccountTransactions = async (request, response) => {
     try {
@@ -9,7 +9,7 @@ const fetchAccountTransactions = async (request, response) => {
             return;
         }
 
-        let { account, userName, limit, ...otherParams } = request.body;
+        let { account, limit, ...otherParams } = request.body;
         limit = limit ?? 25;
 
         const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
@@ -22,7 +22,7 @@ const fetchAccountTransactions = async (request, response) => {
 
         const transactionDetails = await client
             .request({
-                command: "account_tx",
+                command: 'account_tx',
                 account,
                 limit,
                 ...otherParams,

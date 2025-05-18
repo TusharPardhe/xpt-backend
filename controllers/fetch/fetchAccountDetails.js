@@ -14,6 +14,7 @@ const fetchAccountDetails = async (req, res) => {
 
     try {
         const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        console.log('Fetching account details for address:', address, process.env.XRPL_SERVER);
         await client.connect();
 
         const newAccount = await client
@@ -43,7 +44,7 @@ const fetchAccountDetails = async (req, res) => {
                 trustLines: [],
             });
         }
-
+        console.log('Address:', address);
         let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, xrpScan, server_info] =
             await Promise.all([
                 Approver.findOne({ address }),

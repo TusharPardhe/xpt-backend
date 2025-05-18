@@ -24,12 +24,12 @@ router.post('transactions', decryptJSON, verifyJwt);
 router.post('/delete/account', decryptJSON, verifyJwt, deleteSavedAccount);
 // router.post('/account/details', decryptJSON, fetchXrplAccountDetails);
 router.post('/accounts', decryptJSON, verifyJwt, fetchUserSavedAccounts);
-router.post('/account/transactions', decryptJSON, verifyJwt, fetchAccountTransactions);
 router.get('/validate/xrplAccount', verifyUserAddressViaXumm);
 router.get('/validate/uuid', verifyXummUUID);
 router.post('/xumm/transaction', xummTransaction);
 
 router.post('/account/escrow', fetchAccountEscrows);
+router.post('/account/transactions', fetchAccountTransactions);
 router.get('/escrows', fetchAllEscrows);
 router.get('/treasury', fetchTreasuryDetails);
 router.post('/save/account/escrow', accountEscrows);

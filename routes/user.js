@@ -29,7 +29,7 @@ router.get('/validate/uuid', verifyXummUUID);
 router.post('/xumm/transaction', xummTransaction);
 
 router.post('/account/escrow', fetchAccountEscrows);
-router.post('/account/transactions', fetchAccountTransactions);
+router.get('/account/transactions', fetchAccountTransactions);
 router.get('/escrows', fetchAllEscrows);
 router.get('/treasury', fetchTreasuryDetails);
 router.post('/save/account/escrow', accountEscrows);

@@ -17,7 +17,8 @@ const processTransaction = (tx, meta, accountAddress) => {
     }
 
     const timestamp = txData.date;
-    const formattedDate = formatDate(timestamp);
+    const rippleEpochOffset = 946684800;
+    const formattedDate = formatDate(timestamp + rippleEpochOffset);
     const hash = txData.hash;
 
     // Basic transaction info
@@ -26,7 +27,6 @@ const processTransaction = (tx, meta, accountAddress) => {
         date: formattedDate,
         timestamp,
         type: null,
-        displayType: null,
         amount: null,
         formattedAmount: null,
         currency: null,
@@ -94,14 +94,12 @@ const processTransaction = (tx, meta, accountAddress) => {
         if (txData.Account === accountAddress) {
             // User is sender
             transactionInfo.type = 'sent';
-            transactionInfo.displayType = `Sent to ${txData.Destination}`;
             transactionInfo.otherParty = txData.Destination;
             transactionInfo.formattedAmount = `- ${formattedAmount}`;
             transactionInfo.amount = `-${amount}`;
         } else if (txData.Destination === accountAddress) {
             // User is receiver
             transactionInfo.type = 'received';
-            transactionInfo.displayType = `Received from ${txData.Account}`;
             transactionInfo.otherParty = txData.Account;
             transactionInfo.formattedAmount = `+ ${formattedAmount}`;
             transactionInfo.amount = amount;
@@ -111,7 +109,6 @@ const processTransaction = (tx, meta, accountAddress) => {
     } else if (txData.TransactionType === 'OfferCreate' || txData.TransactionType === 'OfferCancel') {
         // Handle exchange transactions
         transactionInfo.type = 'exchange';
-        transactionInfo.displayType = 'Exchange';
 
         // Try to extract exchange details from metadata
         if (txMeta && txMeta.AffectedNodes) {
@@ -122,7 +119,6 @@ const processTransaction = (tx, meta, accountAddress) => {
     } else {
         // Handle other transaction types
         transactionInfo.type = txData.TransactionType.toLowerCase();
-        transactionInfo.displayType = txData.TransactionType;
     }
 
     return transactionInfo;

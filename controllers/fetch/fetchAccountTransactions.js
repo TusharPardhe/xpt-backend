@@ -155,7 +155,6 @@ const fetchAccountTransactions = async (request, response) => {
         const transactionDetails = await client
             .request({
                 command: 'account_tx',
-                ledger_index: 'validated',
                 account,
                 marker,
                 limit: parseInt(limit, 10), // Convert string to number

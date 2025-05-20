@@ -94,18 +94,14 @@ const processTransaction = (tx, meta, accountAddress) => {
         if (txData.Account === accountAddress) {
             // User is sender
             transactionInfo.type = 'sent';
-            transactionInfo.displayType = `Sent to ${txData.Destination.substring(0, 6)}...${txData.Destination.substring(
-                txData.Destination.length - 4
-            )}`;
+            transactionInfo.displayType = `Sent to ${txData.Destination}`;
             transactionInfo.otherParty = txData.Destination;
             transactionInfo.formattedAmount = `- ${formattedAmount}`;
             transactionInfo.amount = `-${amount}`;
         } else if (txData.Destination === accountAddress) {
             // User is receiver
             transactionInfo.type = 'received';
-            transactionInfo.displayType = `Received from ${txData.Account.substring(0, 6)}...${txData.Account.substring(
-                txData.Account.length - 4
-            )}`;
+            transactionInfo.displayType = `Received from ${txData.Account}`;
             transactionInfo.otherParty = txData.Account;
             transactionInfo.formattedAmount = `+ ${formattedAmount}`;
             transactionInfo.amount = amount;

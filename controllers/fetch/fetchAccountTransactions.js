@@ -12,9 +12,15 @@ const processTransaction = (tx, meta, accountAddress) => {
     const txData = tx.tx || tx;
     const txMeta = meta || tx.meta;
 
-    if (txMeta?.AffectedNodes) {
-        delete txMeta.AffectedNodes;
-    }
+    // Clean up metadata to only include essential fields
+    const cleanedMeta = txMeta
+        ? {
+              TransactionIndex: txMeta.TransactionIndex,
+              TransactionResult: txMeta.TransactionResult,
+              delivered_amount: txMeta.delivered_amount,
+              nftoken_id: txMeta.nftoken_id,
+          }
+        : null;
 
     const timestamp = txData.date;
     const rippleEpochOffset = 946684800;
@@ -32,12 +38,19 @@ const processTransaction = (tx, meta, accountAddress) => {
         currency: null,
         otherParty: null,
         address: txData.Account,
-        raw: { tx: txData, meta: txMeta },
+        raw: {
+            tx: {
+                ...txData,
+                meta: cleanedMeta,
+            },
+        },
     };
 
     // Handle Payment transactions
     if (txData.TransactionType === 'Payment') {
         let amount, currency, formattedAmount;
+
+        // Remove debug logging for production
 
         // Determine the delivered amount (actual amount that was delivered)
         if (txMeta && txMeta.delivered_amount) {
@@ -136,10 +149,7 @@ const fetchAccountTransactions = async (request, response) => {
 
         const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
         await client.connect();
-        console.log('Connected to XRPL server', {
-            limit,
-            account,
-        });
+
         if (!(account && limit)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
             return;
@@ -151,12 +161,11 @@ const fetchAccountTransactions = async (request, response) => {
             limit: parseInt(limit, 10), // Convert string to number
         };
 
-        if (ledger) {
-            params.ledger = ledger;
-        }
-
-        if (seq) {
-            params.seq = seq;
+        if (ledger && seq) {
+            params.marker = {
+                ledger: parseInt(ledger),
+                seq: parseInt(seq),
+            };
         }
 
         const transactionDetails = await client.request(params).catch((err) => {
@@ -169,21 +178,16 @@ const fetchAccountTransactions = async (request, response) => {
             if (returnRawFormat) {
                 response.status(200).send({ ...transactionDetails.result });
             } else {
-                // Process transactions into a more user-friendly format
-                const processedTransactions = transactionDetails.result.transactions.map((tx) => processTransaction(tx, null, account));
+                const processedTransactions = transactionDetails.result.transactions.map((txRecord) =>
+                    processTransaction(txRecord, txRecord.meta, account)
+                );
 
                 // Send the formatted response
                 response.status(200).send({
                     transactions: processedTransactions,
                     account,
-                    // Include other metadata from the original response
-                    ledger_index_min: transactionDetails.result.ledger_index_min,
-                    ledger_index_max: transactionDetails.result.ledger_index_max,
                     limit: transactionDetails.result.limit,
-                    marker: transactionDetails.result.marker,
-                    validated: transactionDetails.result.validated,
-                    // Add a raw data field that can be toggled on the front end
-                    raw: returnRawFormat ? transactionDetails.result : undefined,
+                    marker: transactionDetails.result.marker, // This should be the NEW marker for next page
                 });
             }
         }

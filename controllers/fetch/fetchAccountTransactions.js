@@ -151,11 +151,12 @@ const fetchAccountTransactions = async (request, response) => {
             limit: parseInt(limit, 10), // Convert string to number
         };
 
-        if (ledger && seq) {
-            params.marker = {
-                ledger,
-                seq,
-            };
+        if (ledger) {
+            params.ledger = ledger;
+        }
+
+        if (seq) {
+            params.seq = seq;
         }
 
         const transactionDetails = await client.request(params).catch((err) => {

@@ -158,7 +158,7 @@ const fetchAccountTransactions = async (request, response) => {
             };
         }
 
-        const transactionDetails = await client.request().catch((err) => {
+        const transactionDetails = await client.request(params).catch((err) => {
             response.status(500).send({ error: err.data?.error_message || 'Error fetching transactions' });
             return;
         });

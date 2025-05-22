@@ -127,9 +127,10 @@ const processTransaction = (tx, meta, accountAddress) => {
 const fetchAccountTransactions = async (request, response) => {
     try {
         // Get parameters from query instead of body
-        let { account, limit, format, marker } = request.query;
+        let { account, limit, format, ledger, seq } = request.query;
         limit = limit ?? 25;
-        marker = marker ?? undefined;
+        ledger = ledger ?? undefined;
+        seq = seq ?? undefined;
         // Check if user wants raw format (for developers) or UI format (for frontend)
         const returnRawFormat = format === 'raw';
 
@@ -144,17 +145,23 @@ const fetchAccountTransactions = async (request, response) => {
             return;
         }
 
-        const transactionDetails = await client
-            .request({
-                command: 'account_tx',
-                account,
-                marker,
-                limit: parseInt(limit, 10), // Convert string to number
-            })
-            .catch((err) => {
-                response.status(500).send({ error: err.data?.error_message || 'Error fetching transactions' });
-                return;
-            });
+        const params = {
+            command: 'account_tx',
+            account,
+            limit: parseInt(limit, 10), // Convert string to number
+        };
+
+        if (ledger && seq) {
+            params.marker = {
+                ledger,
+                seq,
+            };
+        }
+
+        const transactionDetails = await client.request().catch((err) => {
+            response.status(500).send({ error: err.data?.error_message || 'Error fetching transactions' });
+            return;
+        });
 
         if (transactionDetails) {
             // If raw format is requested, return original response

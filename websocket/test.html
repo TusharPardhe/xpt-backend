@@ -1,0 +1,173 @@
+<!-- WebSocket AI Test Client -->
+<script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+<script>
+
+    function init() {
+        output = document.getElementById("output");
+        testSocket();
+    }
+
+    function testSocket() {
+        // Use the latest Socket.io client with explicit configuration
+        var socket = io('http://localhost:3000/ai', {
+            withCredentials: false,
+            transports: ['websocket'],
+            reconnection: true,
+            reconnectionAttempts: 5
+        });
+
+        // Listen for AI-related events
+        socket.on('ai:message:response', onAIMessage);
+        socket.on('ai:parseCommand:response', onCommandParse);
+        socket.on('connect', onConnect);
+        socket.on('disconnect', onDisconnect);
+        socket.on('connect_error', onError);
+        socket.on('reconnect_error', onError);
+
+        function onConnect(evt) {
+            writeToScreen("✅ CONNECTED TO SOCKET.IO SERVER");
+
+            // Test AI message functionality
+            testAIMessage();
+
+            // After 3 seconds, test command parsing
+            setTimeout(() => {
+                testCommandParse();
+            }, 3000);
+        }
+
+        function testAIMessage() {
+            const message = "What is XRP?";
+            writeToScreen("📤 SENDING AI MESSAGE TEST: " + message);
+
+            socket.emit('ai:message', { prompt: message }, function (response) {
+                if (response.error) {
+                    writeToScreen('<span style="color: red;">❌ ERROR: ' + response.error + '</span>');
+                } else {
+                    writeToScreen('<span style="color: green;">✅ CALLBACK RESPONSE: ' + response.message + '</span>');
+                }
+            });
+        }
+
+        function testCommandParse() {
+            const command = "Send 10 XRP to Alice";
+            const contacts = [
+                { name: "Alice", address: "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh", id: "1" }
+            ];
+
+            writeToScreen("📤 SENDING COMMAND PARSE TEST: " + command);
+
+            socket.emit('ai:parseCommand', {
+                message: command,
+                contacts: contacts
+            }, function (response) {
+                if (response.error) {
+                    writeToScreen('<span style="color: red;">❌ ERROR: ' + response.error + '</span>');
+                } else {
+                    writeToScreen('<span style="color: green;">✅ CALLBACK RESPONSE: ' + JSON.stringify(response, null, 2) + '</span>');
+                }
+            });
+        }
+
+        function onDisconnect(evt) {
+            writeToScreen("❌ DISCONNECTED");
+        }
+
+        function onAIMessage(data) {
+            writeToScreen('<span style="color: blue;">📥 AI MESSAGE RESPONSE: ' + data.message + '</span>');
+        }
+
+        function onCommandParse(data) {
+            writeToScreen('<span style="color: purple;">📥 COMMAND PARSE RESPONSE: ' + JSON.stringify(data, null, 2) + '</span>');
+        }
+
+        function onError(error) {
+            writeToScreen('<span style="color: red;">❌ ERROR: ' + (error.message || JSON.stringify(error)) + '</span>');
+        }
+
+        function writeToScreen(message) {
+            var pre = document.createElement("p");
+            pre.style.wordWrap = "break-word";
+            pre.innerHTML = message;
+            output.appendChild(pre);
+            // Auto-scroll to bottom
+            output.scrollTop = output.scrollHeight;
+        }
+    }
+
+    window.addEventListener("load", init, false);
+</script>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+    }
+
+    h2 {
+        color: #333;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    #output {
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 15px;
+        height: 400px;
+        overflow-y: auto;
+        font-family: monospace;
+        margin-top: 20px;
+    }
+
+    .status {
+        font-weight: bold;
+        margin: 20px 0 10px 0;
+    }
+
+    .controls {
+        margin: 20px 0;
+    }
+
+    button {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 10px 15px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    button:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<h2>Socket.io AI Service Test</h2>
+
+<p>This page tests the WebSocket connection to the AI service.</p>
+
+<div class="controls">
+    <button onclick="location.reload()">Restart Test</button>
+</div>
+
+<div class="status">Connection Status: <span id="connectionStatus">Connecting...</span></div>
+
+<div id="output"></div>
+
+<script>
+    // Update the connection status
+    const connectionStatus = document.getElementById('connectionStatus');
+    document.addEventListener('DOMContentLoaded', function () {
+        connectionStatus.textContent = 'Initializing...';
+    });
+</script>

@@ -120,7 +120,7 @@ const setupAIWebSocket = (io) => {
         });
     });
 
-    aiNamespace.on('connect_error', (error) => {
+    io.on('connect_error', (error) => {
         console.error('AI Namespace connection error:', error);
     });
 

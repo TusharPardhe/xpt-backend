@@ -42,6 +42,8 @@ app.use(cors());
 mongoose.connect(process.env.MONGO_DB, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 15000, // Increase timeout
+    socketTimeoutMS: 45000,
 });
 
 const db = mongoose.connection;

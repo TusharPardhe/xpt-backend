@@ -1,9 +1,7 @@
 const { processAIRequest, parseWalletCommand } = require('./utils/aiUtils');
 
 const setupAIWebSocket = (io) => {
-    const aiNamespace = io.of('/ai');
-
-    aiNamespace.on('connection', (socket) => {
+    io.on('connection', (socket) => {
         console.log(`User connected to AI socket: ${socket.id} at ${new Date().toISOString()}`);
 
         socket.emit('connected', {

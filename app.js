@@ -12,6 +12,7 @@ const login = require('./routes/login');
 const airdrop = require('./routes/airdrop');
 const user = require('./routes/user');
 const xrplData = require('./routes/xrplData');
+const webAuth = require('./routes/webAuth');
 
 // Setup Socket.io
 const httpServer = createServer(app);
@@ -35,6 +36,10 @@ const io = new Server(httpServer, {
 const setupAIWebSocket = require('./websocket/aiWebSocket');
 setupAIWebSocket(io);
 
+// Setup Web Authentication WebSocket handler
+const { setupWebAuthSocket } = require('./websocket/webAuthSocket');
+setupWebAuthSocket(io);
+
 dotenv.config();
 app.use(cors());
 
@@ -55,12 +60,16 @@ db.once('open', function () {
 // Middleware to convert request to json
 app.use(express.json());
 
+// Serve static files from SDK directory
+app.use('/sdk', express.static('sdk'));
+
 // Routes
 app.use('/register', register);
 app.use('/login', login);
 app.use('/airdrop', airdrop);
 app.use('/user', user);
 app.use('/xrpl', xrplData);
+app.use('/webauth', webAuth);
 
 // Port
 const PORT = process.env.PORT || 3000;

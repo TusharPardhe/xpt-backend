@@ -102,10 +102,18 @@ const setupWebAuthSocket = (io) => {
             try {
                 const { requestId, approved, transactionHash, error } = data;
 
-                const request = await TransactionRequest.findOne({ requestId }).populate('sessionId');
+                const request = await TransactionRequest.findOne({ requestId });
 
                 if (!request) {
                     socket.emit('error', { message: 'Transaction request not found' });
+                    return;
+                }
+
+                // Get the session manually since sessionId is a string, not ObjectId
+                const session = await WebConnectionSession.findOne({ sessionId: request.sessionId });
+
+                if (!session) {
+                    socket.emit('error', { message: 'Associated session not found' });
                     return;
                 }
 
@@ -127,8 +135,8 @@ const setupWebAuthSocket = (io) => {
 
                 await request.save();
 
-                // Notify website about transaction response
-                io.to(`session_${request.sessionId._id}`).emit('transaction:response', {
+                // Notify website about transaction response using the correct session ID
+                io.to(`session_${request.sessionId}`).emit('transaction:response', {
                     requestId,
                     approved,
                     transactionHash: approved ? transactionHash : undefined,
@@ -137,7 +145,15 @@ const setupWebAuthSocket = (io) => {
                 });
             } catch (error) {
                 console.error('Error handling transaction response:', error);
-                socket.emit('error', { message: 'Failed to process transaction response' });
+                console.error('Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    data: data
+                });
+                socket.emit('error', { 
+                    message: 'Failed to process transaction response',
+                    details: error.message 
+                });
             }
         });
 

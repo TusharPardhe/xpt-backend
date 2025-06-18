@@ -10,7 +10,6 @@ const TransactionRequestSchema = new mongoose.Schema({
     sessionId: {
         type: String,
         required: true,
-        ref: 'WebConnectionSession',
         index: true
     },
     walletAddress: {

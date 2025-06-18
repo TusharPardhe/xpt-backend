@@ -5,10 +5,7 @@ const TransactionRequest = require('../models/TransactionRequest');
  * Setup WebSocket handlers for web authentication
  */
 const setupWebAuthSocket = (io) => {
-    // Create namespace for web authentication
-    const webAuthNamespace = io.of('/webauth');
-
-    webAuthNamespace.on('connection', (socket) => {
+    io.on('connection', (socket) => {
         console.log(`WebAuth client connected: ${socket.id} at ${new Date().toISOString()}`);
 
         // Handle website connection requests
@@ -88,7 +85,7 @@ const setupWebAuthSocket = (io) => {
                 }
 
                 // Notify website about the response
-                webAuthNamespace.to(`session_${sessionId}`).emit('connection:response', {
+                io.to(`session_${sessionId}`).emit('connection:response', {
                     sessionId,
                     approved,
                     walletAddress: approved ? walletAddress : undefined,
@@ -131,7 +128,7 @@ const setupWebAuthSocket = (io) => {
                 await request.save();
 
                 // Notify website about transaction response
-                webAuthNamespace.to(`session_${request.sessionId._id}`).emit('transaction:response', {
+                io.to(`session_${request.sessionId._id}`).emit('transaction:response', {
                     requestId,
                     approved,
                     transactionHash: approved ? transactionHash : undefined,
@@ -172,7 +169,7 @@ const setupWebAuthSocket = (io) => {
         });
     });
 
-    return webAuthNamespace;
+    return io;
 };
 
 /**
@@ -180,10 +177,8 @@ const setupWebAuthSocket = (io) => {
  */
 const sendPushNotification = async (io, walletAddress, type, data) => {
     try {
-        const webAuthNamespace = io.of('/webauth');
-
         // Send notification to wallet room
-        webAuthNamespace.to(`wallet_${walletAddress}`).emit('push:notification', {
+        io.to(`wallet_${walletAddress}`).emit('push:notification', {
             type,
             data,
             timestamp: new Date().toISOString(),
@@ -201,9 +196,7 @@ const sendPushNotification = async (io, walletAddress, type, data) => {
  */
 const notifyWebsite = async (io, sessionId, eventType, data) => {
     try {
-        const webAuthNamespace = io.of('/webauth');
-
-        webAuthNamespace.to(`session_${sessionId}`).emit(eventType, {
+        io.to(`session_${sessionId}`).emit(eventType, {
             sessionId,
             ...data,
             timestamp: new Date().toISOString(),

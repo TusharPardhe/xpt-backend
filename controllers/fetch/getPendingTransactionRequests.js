@@ -6,7 +6,7 @@ const { API_RESPONSE_CODE } = require('../../constants/app.constants');
  */
 const getPendingTransactionRequests = async (request, response) => {
     try {
-        const { walletAddress } = request.params;
+        const { walletAddress } = request.query;
 
         if (!walletAddress) {
             return response.status(400).json({ 

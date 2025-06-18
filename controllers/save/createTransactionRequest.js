@@ -24,7 +24,7 @@ const createTransactionRequest = async (request, response) => {
             sessionId, 
             transactionType, 
             transactionData,
-            expirationMinutes = 5 
+            expirationMinutes = 2 // Default to 2 minutes for security
         } = body;
 
         // Validate required fields

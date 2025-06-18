@@ -23,4 +23,25 @@ router.get('/transaction/pending', getPendingTransactionRequests);
 // Session management routes
 router.get('/sessions/connected', getConnectedSessions);
 
+// Manual cleanup endpoint (for testing/admin)
+router.post('/cleanup', async (req, res) => {
+    try {
+        const { runFullCleanup } = require('../utils/cleanup.utils');
+        const results = await runFullCleanup();
+        
+        res.json({
+            success: true,
+            data: {
+                message: 'Cleanup completed successfully',
+                results
+            }
+        });
+    } catch (error) {
+        console.error('Manual cleanup error:', error);
+        res.status(500).json({
+            error: 'Cleanup failed'
+        });
+    }
+});
+
 module.exports = router;

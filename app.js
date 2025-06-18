@@ -63,6 +63,9 @@ app.use(express.json());
 // Serve static files from SDK directory
 app.use('/sdk', express.static('sdk'));
 
+// Setup database cleanup service
+const { runFullCleanup, markExpiredRecords } = require('./utils/cleanup.utils');
+
 // Routes
 app.use('/register', register);
 app.use('/login', login);
@@ -73,4 +76,18 @@ app.use('/webauth', webAuth);
 
 // Port
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => console.log(`Server started successfully on ${PORT}`));
+httpServer.listen(PORT, () => {
+    console.log(`Server started successfully on ${PORT}`);
+    
+    // Start cleanup services
+    console.log('Starting database cleanup services...');
+    
+    // Mark expired records every 1 minute
+    setInterval(markExpiredRecords, 60 * 1000);
+    
+    // Full cleanup every 1 hour
+    setInterval(runFullCleanup, 60 * 60 * 1000);
+    
+    // Run initial cleanup after 30 seconds
+    setTimeout(runFullCleanup, 30 * 1000);
+});

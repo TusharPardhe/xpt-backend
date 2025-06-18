@@ -57,11 +57,14 @@ const respondToConnectionRequest = async (request, response) => {
                 });
             }
 
-            // Update session with approval
+            // Update session with approval and extend expiration to 1 day
             session.status = 'approved';
             session.walletAddress = walletAddress;
             session.deviceId = deviceId;
             session.approvedAt = new Date();
+            session.connectedAt = new Date();
+            // Extend session to 1 day (24 hours) from approval
+            session.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
         } else {
             // Update session with rejection
             session.status = 'rejected';

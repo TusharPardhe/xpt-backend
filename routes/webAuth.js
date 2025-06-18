@@ -9,6 +9,7 @@ const respondToConnectionRequest = require('../controllers/update/respondToConne
 const createTransactionRequest = require('../controllers/save/createTransactionRequest');
 const getPendingTransactionRequests = require('../controllers/fetch/getPendingTransactionRequests');
 const getConnectedSessions = require('../controllers/fetch/getConnectedSessions');
+const removeWebConnectionSession = require('../controllers/delete/removeWebConnectionSession');
 
 // Connection management routes
 router.post('/connect/create', createConnectionSession);
@@ -22,6 +23,7 @@ router.get('/transaction/pending', getPendingTransactionRequests);
 
 // Session management routes
 router.get('/sessions/connected', getConnectedSessions);
+router.delete('/sessions/:sessionId', removeWebConnectionSession);
 
 // Manual cleanup endpoint (for testing/admin)
 router.post('/cleanup', async (req, res) => {

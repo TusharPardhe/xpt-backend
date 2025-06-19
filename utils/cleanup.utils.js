@@ -12,11 +12,11 @@ const TransactionRequest = require('../models/TransactionRequest');
 const cleanupExpiredSessions = async () => {
     try {
         const now = new Date();
-        
+
         // Delete expired sessions older than 1 hour (give some buffer time)
         const result = await WebConnectionSession.deleteMany({
             expiresAt: { $lt: new Date(now.getTime() - 60 * 60 * 1000) },
-            status: { $in: ['expired', 'rejected'] }
+            status: { $in: ['expired', 'rejected'] },
         });
 
         console.log(`Cleaned up ${result.deletedCount} expired connection sessions`);
@@ -34,11 +34,11 @@ const cleanupExpiredSessions = async () => {
 const cleanupExpiredTransactionRequests = async () => {
     try {
         const now = new Date();
-        
+
         // Delete expired transaction requests
         const result = await TransactionRequest.deleteMany({
             expiresAt: { $lt: now },
-            status: { $in: ['pending', 'expired', 'rejected'] }
+            status: { $in: ['pending', 'expired', 'rejected'] },
         });
 
         console.log(`Cleaned up ${result.deletedCount} expired transaction requests`);
@@ -55,11 +55,11 @@ const cleanupExpiredTransactionRequests = async () => {
 const cleanupOldTransactionRequests = async () => {
     try {
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        
+
         // Delete completed/submitted transaction requests older than 7 days
         const result = await TransactionRequest.deleteMany({
             createdAt: { $lt: sevenDaysAgo },
-            status: { $in: ['submitted', 'completed'] }
+            status: { $in: ['submitted', 'completed'] },
         });
 
         console.log(`Cleaned up ${result.deletedCount} old transaction requests`);
@@ -76,11 +76,11 @@ const cleanupOldTransactionRequests = async () => {
 const cleanupInactiveSessions = async () => {
     try {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        
+
         // Delete approved sessions with no recent activity for 30+ days
         const result = await WebConnectionSession.deleteMany({
             status: 'approved',
-            lastActivity: { $lt: thirtyDaysAgo }
+            lastActivity: { $lt: thirtyDaysAgo },
         });
 
         console.log(`Cleaned up ${result.deletedCount} inactive connection sessions`);
@@ -96,17 +96,17 @@ const cleanupInactiveSessions = async () => {
  */
 const runFullCleanup = async () => {
     console.log('Starting database cleanup...');
-    
+
     const results = {
         expiredSessions: await cleanupExpiredSessions(),
         expiredTransactions: await cleanupExpiredTransactionRequests(),
         oldTransactions: await cleanupOldTransactionRequests(),
-        inactiveSessions: await cleanupInactiveSessions()
+        inactiveSessions: await cleanupInactiveSessions(),
     };
-    
+
     const totalCleaned = Object.values(results).reduce((sum, count) => sum + count, 0);
     console.log(`Database cleanup completed. Total records cleaned: ${totalCleaned}`);
-    
+
     return results;
 };
 
@@ -116,30 +116,32 @@ const runFullCleanup = async () => {
 const markExpiredRecords = async () => {
     try {
         const now = new Date();
-        
+
         // Mark expired sessions
         const expiredSessions = await WebConnectionSession.updateMany(
-            { 
+            {
                 expiresAt: { $lt: now },
-                status: { $in: ['pending', 'approved'] }
+                status: { $in: ['pending', 'approved'] },
             },
             { status: 'expired' }
         );
 
         // Mark expired transaction requests
         const expiredTransactions = await TransactionRequest.updateMany(
-            { 
+            {
                 expiresAt: { $lt: now },
-                status: 'pending'
+                status: 'pending',
             },
             { status: 'expired' }
         );
 
-        console.log(`Marked ${expiredSessions.modifiedCount} sessions and ${expiredTransactions.modifiedCount} transaction requests as expired`);
-        
+        console.log(
+            `Marked ${expiredSessions.modifiedCount} sessions and ${expiredTransactions.modifiedCount} transaction requests as expired`
+        );
+
         return {
             sessions: expiredSessions.modifiedCount,
-            transactions: expiredTransactions.modifiedCount
+            transactions: expiredTransactions.modifiedCount,
         };
     } catch (error) {
         console.error('Error marking expired records:', error);
@@ -153,5 +155,5 @@ module.exports = {
     cleanupOldTransactionRequests,
     cleanupInactiveSessions,
     runFullCleanup,
-    markExpiredRecords
+    markExpiredRecords,
 };

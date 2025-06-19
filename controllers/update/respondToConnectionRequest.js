@@ -16,20 +16,20 @@ const respondToConnectionRequest = async (request, response) => {
         const { sessionId, approved, walletAddress, deviceId, rejectionReason } = body;
 
         if (!sessionId || typeof approved !== 'boolean') {
-            return response.status(400).json({ 
-                error: 'Missing required fields: sessionId and approved' 
+            return response.status(400).json({
+                error: 'Missing required fields: sessionId and approved',
             });
         }
 
         // Find the session
-        const session = await WebConnectionSession.findOne({ 
+        const session = await WebConnectionSession.findOne({
             sessionId,
-            status: 'pending'
+            status: 'pending',
         });
 
         if (!session) {
-            return response.status(404).json({ 
-                error: 'Session not found or already processed' 
+            return response.status(404).json({
+                error: 'Session not found or already processed',
             });
         }
 
@@ -37,23 +37,23 @@ const respondToConnectionRequest = async (request, response) => {
         if (new Date() > session.expiresAt) {
             session.status = 'expired';
             await session.save();
-            
-            return response.status(410).json({ 
-                error: 'Session has expired' 
+
+            return response.status(410).json({
+                error: 'Session has expired',
             });
         }
 
         if (approved) {
             // Validate wallet address if approved
             if (!walletAddress || !isValidXRPLAddress(walletAddress)) {
-                return response.status(400).json({ 
-                    error: 'Valid wallet address is required for approval' 
+                return response.status(400).json({
+                    error: 'Valid wallet address is required for approval',
                 });
             }
 
             if (!deviceId) {
-                return response.status(400).json({ 
-                    error: 'Device ID is required for approval' 
+                return response.status(400).json({
+                    error: 'Device ID is required for approval',
                 });
             }
 
@@ -80,10 +80,9 @@ const respondToConnectionRequest = async (request, response) => {
                 sessionId: session.sessionId,
                 status: session.status,
                 walletAddress: session.walletAddress,
-                approvedAt: session.approvedAt
-            }
+                approvedAt: session.approvedAt,
+            },
         });
-
     } catch (error) {
         console.error('Error responding to connection request:', error);
         response.status(500).json({ error: API_RESPONSE_CODE[500] });

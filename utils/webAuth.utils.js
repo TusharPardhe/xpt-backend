@@ -48,17 +48,17 @@ const createTransactionExpirationTime = (minutes = 5) => {
  */
 const isValidXRPLAddress = (address) => {
     if (!address || typeof address !== 'string') return false;
-    
+
     // Classic address validation (starts with 'r')
     if (address.startsWith('r')) {
         return address.length >= 25 && address.length <= 34;
     }
-    
+
     // X-address validation (starts with 'X')
     if (address.startsWith('X')) {
         return address.length >= 47 && address.length <= 47;
     }
-    
+
     return false;
 };
 
@@ -101,13 +101,13 @@ const createPushNotificationPayload = (type, data) => {
         notification: {
             title: 'RevoX Wallet',
             badge: 1,
-            sound: 'default'
+            sound: 'default',
         },
         data: {
             type,
             timestamp: Date.now().toString(),
-            ...data
-        }
+            ...data,
+        },
     };
 
     switch (type) {
@@ -137,7 +137,7 @@ const formatTransactionForDisplay = (transactionData) => {
     const formatted = {
         type: transactionData.transactionType,
         summary: '',
-        details: {}
+        details: {},
     };
 
     switch (transactionData.transactionType) {
@@ -150,7 +150,7 @@ const formatTransactionForDisplay = (transactionData) => {
                     amount: `${xrpAmount} XRP`,
                     destination: transactionData.transactionData.destination,
                     destinationTag: transactionData.transactionData.destinationTag,
-                    memo: transactionData.transactionData.memo
+                    memo: transactionData.transactionData.memo,
                 };
             } else {
                 // Token payment
@@ -161,7 +161,7 @@ const formatTransactionForDisplay = (transactionData) => {
                     destination: transactionData.transactionData.destination,
                     issuer: token.issuer,
                     destinationTag: transactionData.transactionData.destinationTag,
-                    memo: transactionData.transactionData.memo
+                    memo: transactionData.transactionData.memo,
                 };
             }
             break;
@@ -170,7 +170,7 @@ const formatTransactionForDisplay = (transactionData) => {
             formatted.details = {
                 currency: transactionData.transactionData.currency,
                 issuer: transactionData.transactionData.issuer,
-                limit: transactionData.transactionData.limit
+                limit: transactionData.transactionData.limit,
             };
             break;
         default:
@@ -193,5 +193,5 @@ module.exports = {
     isValidXRPAmount,
     sanitizeOrigin,
     createPushNotificationPayload,
-    formatTransactionForDisplay
+    formatTransactionForDisplay,
 };

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,12 +13,14 @@
             padding: 20px;
             background: #f8f9fa;
         }
+
         .container {
             background: white;
             border-radius: 12px;
             padding: 30px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .btn {
             background: #007AFF;
             color: white;
@@ -29,15 +32,18 @@
             margin: 8px 4px;
             transition: all 0.2s;
         }
+
         .btn:hover {
             background: #0056CC;
             transform: translateY(-1px);
         }
+
         .btn:disabled {
             background: #ccc;
             cursor: not-allowed;
             transform: none;
         }
+
         .code-display {
             background: #f1f3f4;
             padding: 20px;
@@ -48,40 +54,48 @@
             margin: 20px 0;
             letter-spacing: 4px;
         }
+
         .status {
             padding: 12px;
             border-radius: 8px;
             margin: 12px 0;
         }
+
         .status.success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
+
         .status.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
         .status.info {
             background: #d1ecf1;
             color: #0c5460;
             border: 1px solid #bee5eb;
         }
+
         .transaction-form {
             background: #f8f9fa;
             padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
         }
+
         .form-group {
             margin-bottom: 16px;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 6px;
             font-weight: 600;
         }
+
         .form-group input {
             width: 100%;
             padding: 10px;
@@ -89,6 +103,7 @@
             border-radius: 6px;
             font-size: 14px;
         }
+
         .logs {
             background: #1a1a1a;
             color: #00ff00;
@@ -102,11 +117,12 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🚀 RevoX Wallet SDK Integration Example</h1>
         <p>This example demonstrates how to integrate RevoX Wallet into your website for XRPL transactions.</p>
-        
+
         <div id="status" class="status info">
             SDK initialized. Ready to connect to wallet.
         </div>
@@ -117,13 +133,13 @@
             <button id="connectBtn" class="btn">Connect Wallet</button>
             <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
             <button id="checkStatusBtn" class="btn">Check Status</button>
-            
+
             <div id="connectionCode" style="display: none;">
                 <h3>Enter this code in your RevoX mobile app:</h3>
                 <div class="code-display" id="codeDisplay">------</div>
                 <p>Code expires in <span id="countdown">--</span> seconds</p>
             </div>
-            
+
             <div id="connectionInfo" style="display: none;">
                 <h3>✅ Connected to Wallet</h3>
                 <p><strong>Address:</strong> <span id="walletAddress">--</span></p>
@@ -185,7 +201,7 @@
     <!-- Include Socket.IO and RevoX SDK -->
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
     <script src="revox-wallet-sdk.js"></script>
-    
+
     <script>
         // Initialize SDK
         const revoX = new RevoXWalletSDK({
@@ -201,7 +217,7 @@
         const sendPaymentBtn = document.getElementById('sendPaymentBtn');
         const setTrustBtn = document.getElementById('setTrustBtn');
         const clearLogsBtn = document.getElementById('clearLogsBtn');
-        
+
         const statusEl = document.getElementById('status');
         const connectionCodeEl = document.getElementById('connectionCode');
         const codeDisplayEl = document.getElementById('codeDisplay');
@@ -262,11 +278,11 @@
             try {
                 updateStatus('Creating connection session...', 'info');
                 const result = await revoX.requestConnection();
-                
+
                 codeDisplayEl.textContent = result.code;
                 connectionCodeEl.style.display = 'block';
                 startCountdown(result.expiresIn);
-                
+
                 updateStatus('Connection code generated. Enter it in your mobile app.', 'info');
             } catch (error) {
                 updateStatus(`Connection failed: ${error.message}`, 'error');
@@ -303,7 +319,7 @@
                     memo: memo || undefined,
                     destinationTag: destinationTag ? parseInt(destinationTag) : undefined
                 });
-                
+
                 updateStatus(`Payment request created. Check your mobile app. (ID: ${result.requestId})`, 'info');
             } catch (error) {
                 updateStatus(`Payment request failed: ${error.message}`, 'error');
@@ -327,7 +343,7 @@
                     issuer,
                     limit: limit || undefined
                 });
-                
+
                 updateStatus(`Trust line request created. Check your mobile app. (ID: ${result.requestId})`, 'info');
             } catch (error) {
                 updateStatus(`Trust line request failed: ${error.message}`, 'error');
@@ -390,4 +406,5 @@
         logEvent('RevoX Wallet SDK Demo initialized');
     </script>
 </body>
+
 </html>

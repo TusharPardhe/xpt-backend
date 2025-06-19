@@ -9,8 +9,8 @@ const getPendingTransactionRequests = async (request, response) => {
         const { walletAddress } = request.query;
 
         if (!walletAddress) {
-            return response.status(400).json({ 
-                error: 'Wallet address is required' 
+            return response.status(400).json({
+                error: 'Wallet address is required',
             });
         }
 
@@ -18,10 +18,10 @@ const getPendingTransactionRequests = async (request, response) => {
         const requests = await TransactionRequest.find({
             walletAddress,
             status: 'pending',
-            expiresAt: { $gt: new Date() }
+            expiresAt: { $gt: new Date() },
         })
-        .sort({ createdAt: -1 })
-        .limit(50);
+            .sort({ createdAt: -1 })
+            .limit(50);
 
         // Get session information for each request
         const requestsWithSessions = await Promise.all(
@@ -37,7 +37,7 @@ const getPendingTransactionRequests = async (request, response) => {
                     transactionData: req.transactionData,
                     expiresAt: req.expiresAt.toISOString(),
                     remainingTime: Math.max(0, Math.floor((req.expiresAt - new Date()) / 1000)),
-                    createdAt: req.createdAt.toISOString()
+                    createdAt: req.createdAt.toISOString(),
                 };
             })
         );
@@ -46,10 +46,9 @@ const getPendingTransactionRequests = async (request, response) => {
             success: true,
             data: {
                 requests: requestsWithSessions,
-                count: requestsWithSessions.length
-            }
+                count: requestsWithSessions.length,
+            },
         });
-
     } catch (error) {
         console.error('Error fetching pending transaction requests:', error);
         response.status(500).json({ error: API_RESPONSE_CODE[500] });

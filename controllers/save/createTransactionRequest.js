@@ -1,13 +1,14 @@
 const TransactionRequest = require('../../models/TransactionRequest');
 const WebConnectionSession = require('../../models/WebConnectionSession');
-const { 
-    generateRequestId, 
+const {
+    generateRequestId,
     createTransactionExpirationTime,
     isValidXRPLAddress,
     isValidDestinationTag,
-    isValidXRPAmount
+    isValidXRPAmount,
 } = require('../../utils/webAuth.utils');
 const { API_RESPONSE_CODE } = require('../../constants/app.constants');
+const { sendPushNotificationToUser } = require('../../utils/pushNotification.utils');
 
 /**
  * Create a new transaction request from a connected website
@@ -20,44 +21,44 @@ const createTransactionRequest = async (request, response) => {
             return response.status(400).json({ error: API_RESPONSE_CODE[400] });
         }
 
-        const { 
-            sessionId, 
-            transactionType, 
+        const {
+            sessionId,
+            transactionType,
             transactionData,
-            expirationMinutes = 2 // Default to 2 minutes for security
+            expirationMinutes = 2, // Default to 2 minutes for security
         } = body;
 
         // Validate required fields
         if (!sessionId || !transactionType || !transactionData) {
-            return response.status(400).json({ 
-                error: 'Missing required fields: sessionId, transactionType, transactionData' 
+            return response.status(400).json({
+                error: 'Missing required fields: sessionId, transactionType, transactionData',
             });
         }
 
         // Find and validate session
-        const session = await WebConnectionSession.findOne({ 
+        const session = await WebConnectionSession.findOne({
             sessionId,
-            status: 'approved'
+            status: 'approved',
         });
 
         if (!session) {
-            return response.status(404).json({ 
-                error: 'Session not found or not approved' 
+            return response.status(404).json({
+                error: 'Session not found or not approved',
             });
         }
 
         // Check if session has sign_transactions permission
         if (!session.metadata.permissions.includes('sign_transactions')) {
-            return response.status(403).json({ 
-                error: 'Session does not have transaction signing permission' 
+            return response.status(403).json({
+                error: 'Session does not have transaction signing permission',
             });
         }
 
         // Validate transaction data based on type
         const validationResult = validateTransactionData(transactionType, transactionData);
         if (!validationResult.valid) {
-            return response.status(400).json({ 
-                error: validationResult.error 
+            return response.status(400).json({
+                error: validationResult.error,
             });
         }
 
@@ -74,10 +75,28 @@ const createTransactionRequest = async (request, response) => {
             transactionType,
             transactionData: validationResult.normalizedData,
             expiresAt,
-            status: 'pending'
+            status: 'pending',
         });
 
         await transactionRequest.save();
+
+        // Send push notification to user
+        try {
+            await sendPushNotificationToUser(session.walletAddress, {
+                title: 'Transaction Request',
+                body: `${session.websiteName} wants to send a transaction`,
+                data: {
+                    type: 'transaction_request',
+                    requestId,
+                    sessionId,
+                    websiteName: session.websiteName,
+                    transactionType,
+                },
+            });
+        } catch (notificationError) {
+            console.error('Failed to send push notification:', notificationError);
+            // Don't fail the request if notification fails
+        }
 
         response.status(200).json({
             success: true,
@@ -86,10 +105,9 @@ const createTransactionRequest = async (request, response) => {
                 transactionType,
                 expiresAt: expiresAt.toISOString(),
                 expiresIn: expirationMinutes * 60,
-                estimatedFee: validationResult.estimatedFee
-            }
+                estimatedFee: validationResult.estimatedFee,
+            },
         });
-
     } catch (error) {
         console.error('Error creating transaction request:', error);
         response.status(500).json({ error: API_RESPONSE_CODE[500] });
@@ -104,7 +122,7 @@ const validateTransactionData = (transactionType, data) => {
         valid: false,
         error: null,
         normalizedData: null,
-        estimatedFee: '0.000012' // Default XRPL fee
+        estimatedFee: '0.000012', // Default XRPL fee
     };
 
     try {
@@ -115,14 +133,14 @@ const validateTransactionData = (transactionType, data) => {
                     result.error = 'Invalid payment data';
                     return result;
                 }
-                
+
                 // Normalize amount
                 if (typeof data.amount === 'string') {
                     // XRP amount - convert to drops if needed
                     const xrpAmount = parseFloat(data.amount);
                     data.amount = (xrpAmount * 1000000).toString();
                 }
-                
+
                 result.normalizedData = data;
                 break;
 
@@ -151,7 +169,6 @@ const validateTransactionData = (transactionType, data) => {
 
         result.valid = true;
         return result;
-
     } catch (error) {
         result.error = `Validation error: ${error.message}`;
         return result;
@@ -233,8 +250,7 @@ const validateAmount = (amount) => {
     if (typeof amount === 'string') {
         return isValidXRPAmount(amount);
     } else if (typeof amount === 'object') {
-        return amount.value && amount.currency && amount.issuer && 
-               isValidXRPLAddress(amount.issuer);
+        return amount.value && amount.currency && amount.issuer && isValidXRPLAddress(amount.issuer);
     }
     return false;
 };

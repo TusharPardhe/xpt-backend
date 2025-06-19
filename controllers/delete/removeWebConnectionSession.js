@@ -12,26 +12,26 @@ const removeWebConnectionSession = async (req, res) => {
 
         if (!sessionId) {
             return res.status(400).json({
-                error: 'Session ID is required'
+                error: 'Session ID is required',
             });
         }
 
         if (!walletAddress) {
             return res.status(400).json({
-                error: 'Wallet address is required'
+                error: 'Wallet address is required',
             });
         }
 
         // Find the session
-        const session = await WebConnectionSession.findOne({ 
-            sessionId, 
+        const session = await WebConnectionSession.findOne({
+            sessionId,
             walletAddress,
-            status: 'connected' 
+            status: 'connected',
         });
 
         if (!session) {
             return res.status(404).json({
-                error: 'Connected session not found or already disconnected'
+                error: 'Connected session not found or already disconnected',
             });
         }
 
@@ -45,15 +45,15 @@ const removeWebConnectionSession = async (req, res) => {
         await TransactionRequest.updateMany(
             {
                 sessionId: sessionId,
-                status: 'pending'
+                status: 'pending',
             },
             {
                 status: 'cancelled',
                 userResponse: {
                     approved: false,
                     rejectionReason: 'Session disconnected',
-                    respondedAt: new Date()
-                }
+                    respondedAt: new Date(),
+                },
             }
         );
 
@@ -62,7 +62,7 @@ const removeWebConnectionSession = async (req, res) => {
             try {
                 await notifyWebsite(req.io, sessionId, 'session:disconnected', {
                     reason: 'user_initiated',
-                    disconnectedAt: new Date().toISOString()
+                    disconnectedAt: new Date().toISOString(),
                 });
             } catch (socketError) {
                 console.warn('Failed to notify website about disconnection:', socketError);
@@ -75,14 +75,13 @@ const removeWebConnectionSession = async (req, res) => {
             data: {
                 message: 'Session disconnected successfully',
                 sessionId,
-                disconnectedAt: session.disconnectedAt
-            }
+                disconnectedAt: session.disconnectedAt,
+            },
         });
-
     } catch (error) {
         console.error('Error removing web connection session:', error);
         res.status(500).json({
-            error: 'Failed to disconnect session'
+            error: 'Failed to disconnect session',
         });
     }
 };

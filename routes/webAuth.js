@@ -10,6 +10,7 @@ const createTransactionRequest = require('../controllers/save/createTransactionR
 const getPendingTransactionRequests = require('../controllers/fetch/getPendingTransactionRequests');
 const getConnectedSessions = require('../controllers/fetch/getConnectedSessions');
 const removeWebConnectionSession = require('../controllers/delete/removeWebConnectionSession');
+const updatePushToken = require('../controllers/update/updatePushToken');
 
 // Connection management routes
 router.post('/connect/create', createConnectionSession);
@@ -25,23 +26,26 @@ router.get('/transaction/pending', getPendingTransactionRequests);
 router.get('/sessions/connected', getConnectedSessions);
 router.delete('/sessions/:sessionId', removeWebConnectionSession);
 
+// Push notification routes
+router.post('/push/token', updatePushToken);
+
 // Manual cleanup endpoint (for testing/admin)
 router.post('/cleanup', async (req, res) => {
     try {
         const { runFullCleanup } = require('../utils/cleanup.utils');
         const results = await runFullCleanup();
-        
+
         res.json({
             success: true,
             data: {
                 message: 'Cleanup completed successfully',
-                results
-            }
+                results,
+            },
         });
     } catch (error) {
         console.error('Manual cleanup error:', error);
         res.status(500).json({
-            error: 'Cleanup failed'
+            error: 'Cleanup failed',
         });
     }
 });

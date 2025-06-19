@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,13 +13,15 @@
             padding: 20px;
             background: #f5f5f5;
         }
+
         .test-container {
             background: white;
             border-radius: 12px;
             padding: 20px;
             margin: 20px 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
+
         .btn {
             background: #007AFF;
             color: white;
@@ -29,8 +32,16 @@
             margin: 5px;
             font-size: 14px;
         }
-        .btn:hover { background: #0056CC; }
-        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        .btn:hover {
+            background: #0056CC;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
         .code-display {
             background: #f1f3f4;
             padding: 15px;
@@ -41,14 +52,28 @@
             margin: 10px 0;
             letter-spacing: 2px;
         }
+
         .status {
             padding: 10px;
             border-radius: 6px;
             margin: 10px 0;
         }
-        .status.success { background: #d4edda; color: #155724; }
-        .status.error { background: #f8d7da; color: #721c24; }
-        .status.info { background: #d1ecf1; color: #0c5460; }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
         .logs {
             background: #1a1a1a;
             color: #00ff00;
@@ -62,23 +87,24 @@
         }
     </style>
 </head>
+
 <body>
     <h1>🧪 RevoX Wallet SDK - Quick Test</h1>
-    
+
     <div class="test-container">
         <h2>📱 Connection Test</h2>
         <div id="status" class="status info">Ready to test connection</div>
-        
+
         <button id="connectBtn" class="btn">Create Connection</button>
         <button id="checkStatusBtn" class="btn">Check Status</button>
         <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
-        
+
         <div id="connectionCode" style="display: none;">
             <h3>Enter this code in RevoX mobile app:</h3>
             <div class="code-display" id="codeDisplay">------</div>
             <p>Expires in <span id="countdown">--</span> seconds</p>
         </div>
-        
+
         <div id="connectionInfo" style="display: none;">
             <h3>✅ Connected</h3>
             <p><strong>Wallet:</strong> <span id="walletAddress">--</span></p>
@@ -88,9 +114,12 @@
     <div class="test-container">
         <h2>💸 Transaction Test</h2>
         <div>
-            <label>Destination: <input type="text" id="destination" placeholder="rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" style="width: 100%; padding: 8px; margin: 5px 0;"></label>
-            <label>Amount: <input type="number" id="amount" placeholder="10.5" step="0.000001" style="width: 100%; padding: 8px; margin: 5px 0;"></label>
-            <label>Memo: <input type="text" id="memo" placeholder="Test payment" style="width: 100%; padding: 8px; margin: 5px 0;"></label>
+            <label>Destination: <input type="text" id="destination" placeholder="rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                    style="width: 100%; padding: 8px; margin: 5px 0;"></label>
+            <label>Amount: <input type="number" id="amount" placeholder="10.5" step="0.000001"
+                    style="width: 100%; padding: 8px; margin: 5px 0;"></label>
+            <label>Memo: <input type="text" id="memo" placeholder="Test payment"
+                    style="width: 100%; padding: 8px; margin: 5px 0;"></label>
         </div>
         <button id="sendPaymentBtn" class="btn" disabled>Send Payment</button>
     </div>
@@ -104,7 +133,7 @@
     <!-- Load dependencies -->
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
     <script src="revox-wallet-sdk.js"></script>
-    
+
     <script>
         // Initialize SDK
         const revoX = new RevoXWalletSDK({
@@ -120,7 +149,7 @@
         const checkStatusBtn = document.getElementById('checkStatusBtn');
         const sendPaymentBtn = document.getElementById('sendPaymentBtn');
         const clearLogsBtn = document.getElementById('clearLogsBtn');
-        
+
         const statusEl = document.getElementById('status');
         const connectionCodeEl = document.getElementById('connectionCode');
         const codeDisplayEl = document.getElementById('codeDisplay');
@@ -180,11 +209,11 @@
             try {
                 updateStatus('Creating connection...', 'info');
                 const result = await revoX.requestConnection();
-                
+
                 codeDisplayEl.textContent = result.code;
                 connectionCodeEl.style.display = 'block';
                 startCountdown(result.expiresIn);
-                
+
                 updateStatus('Code generated. Enter it in your mobile app.', 'info');
                 log(`Connection code: ${result.code} (expires in ${result.expiresIn}s)`);
             } catch (error) {
@@ -225,7 +254,7 @@
                     amount,
                     memo: memo || undefined
                 });
-                
+
                 updateStatus(`Payment request sent (ID: ${result.requestId})`, 'info');
                 log(`Payment request created: ${result.requestId}`);
             } catch (error) {
@@ -276,4 +305,5 @@
         log('Make sure the backend server is running on localhost:3000');
     </script>
 </body>
+
 </html>

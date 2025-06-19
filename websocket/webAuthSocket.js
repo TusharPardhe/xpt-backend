@@ -1,5 +1,6 @@
 const WebConnectionSession = require('../models/WebConnectionSession');
 const TransactionRequest = require('../models/TransactionRequest');
+const { sendPushNotificationToUser } = require('../utils/pushNotification.utils');
 
 /**
  * Setup WebSocket handlers for web authentication
@@ -148,11 +149,11 @@ const setupWebAuthSocket = (io) => {
                 console.error('Error details:', {
                     message: error.message,
                     stack: error.stack,
-                    data: data
+                    data: data,
                 });
-                socket.emit('error', { 
+                socket.emit('error', {
                     message: 'Failed to process transaction response',
-                    details: error.message 
+                    details: error.message,
                 });
             }
         });
@@ -200,10 +201,45 @@ const sendPushNotification = async (io, walletAddress, type, data) => {
             timestamp: new Date().toISOString(),
         });
 
-        // Here you would also integrate with actual push notification services
-        // like Firebase Cloud Messaging (FCM) or Apple Push Notification Service (APNs)
+        // Send actual push notification to device
+        await sendPushNotificationToUser(walletAddress, {
+            title: getNotificationTitle(type, data),
+            body: getNotificationBody(type, data),
+            data: {
+                type,
+                ...data,
+            },
+        });
     } catch (error) {
         console.error('Error sending push notification:', error);
+    }
+};
+
+/**
+ * Get notification title based on type
+ */
+const getNotificationTitle = (type, data) => {
+    switch (type) {
+        case 'connection_request':
+            return 'Connection Request';
+        case 'transaction_request':
+            return 'Transaction Request';
+        default:
+            return 'RevoX Notification';
+    }
+};
+
+/**
+ * Get notification body based on type
+ */
+const getNotificationBody = (type, data) => {
+    switch (type) {
+        case 'connection_request':
+            return `${data.websiteName} wants to connect to your wallet`;
+        case 'transaction_request':
+            return `${data.websiteName} wants to send a transaction`;
+        default:
+            return 'You have a new notification';
     }
 };
 

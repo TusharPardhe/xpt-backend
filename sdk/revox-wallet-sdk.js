@@ -7,21 +7,21 @@
 class RevoXWalletSDK {
     constructor(config = {}) {
         this.config = {
-            apiUrl: config.apiUrl || 'http://localhost:3000',
-            websocketUrl: config.websocketUrl || 'http://localhost:3000',
+            apiUrl: config.apiUrl || 'https://suitcoin.ai/xpt',
+            websocketUrl: config.websocketUrl || 'https://suitcoin.ai',
             websiteName: config.websiteName || document.title || 'Unknown Website',
             websiteIcon: config.websiteIcon || this.getWebsiteIcon(),
             permissions: config.permissions || ['read_balance', 'read_account_info', 'sign_transactions'],
             timeout: config.timeout || 300000, // 5 minutes default timeout
-            ...config
+            ...config,
         };
-        
+
         this.socket = null;
         this.currentSession = null;
         this.isConnected = false;
         this.eventListeners = {};
         this.connectionPromise = null;
-        
+
         // Auto-connect WebSocket
         this.initializeWebSocket();
     }
@@ -31,14 +31,15 @@ class RevoXWalletSDK {
      */
     getWebsiteIcon() {
         // Try to get favicon
-        const favicon = document.querySelector('link[rel="icon"]') || 
-                       document.querySelector('link[rel="shortcut icon"]') ||
-                       document.querySelector('link[rel="apple-touch-icon"]');
-        
+        const favicon =
+            document.querySelector('link[rel="icon"]') ||
+            document.querySelector('link[rel="shortcut icon"]') ||
+            document.querySelector('link[rel="apple-touch-icon"]');
+
         if (favicon) {
             return new URL(favicon.href, window.location.href).href;
         }
-        
+
         // Default to /favicon.ico
         return new URL('/favicon.ico', window.location.href).href;
     }
@@ -52,11 +53,12 @@ class RevoXWalletSDK {
             return;
         }
 
-        this.socket = io(`${this.config.websocketUrl}`, {
+        this.socket = io(`https://suitcoin.ai`, {
+            path: '/xpt/socket.io',
             transports: ['websocket', 'polling'],
             reconnection: true,
             reconnectionAttempts: 5,
-            reconnectionDelay: 1000
+            reconnectionDelay: 1000,
         });
 
         this.socket.on('connect', () => {
@@ -98,14 +100,14 @@ class RevoXWalletSDK {
             const response = await fetch(`${this.config.apiUrl}/webauth/connect/create`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     websiteName: this.config.websiteName,
                     websiteOrigin: window.location.origin,
                     websiteIcon: this.config.websiteIcon,
-                    permissions: this.config.permissions
-                })
+                    permissions: this.config.permissions,
+                }),
             });
 
             const result = await response.json();
@@ -118,7 +120,7 @@ class RevoXWalletSDK {
                 sessionId: result.data.sessionId,
                 code: result.data.code,
                 expiresAt: new Date(result.data.expiresAt),
-                status: 'pending'
+                status: 'pending',
             };
 
             // Join session room for real-time updates
@@ -158,14 +160,14 @@ class RevoXWalletSDK {
                 // Xaman-compatible fields
                 uuid: this.currentSession.sessionId,
                 next: {
-                    always: window.location.href
+                    always: window.location.href,
                 },
                 refs: {
                     qr_png: this.generateQRCodeURL(this.currentSession.code),
                     qr_matrix: this.generateQRCodeData(this.currentSession.code),
                     qr_uri_quality_opts: ['m', 'q', 'h'],
-                    websocket_status: this.socket?.connected ? 'connected' : 'disconnected'
-                }
+                    websocket_status: this.socket?.connected ? 'connected' : 'disconnected',
+                },
             };
         } catch (error) {
             this.emit('error', { type: 'connection_failed', error: error.message });
@@ -194,7 +196,7 @@ class RevoXWalletSDK {
             websiteOrigin: window.location.origin,
             websiteIcon: this.config.websiteIcon,
             permissions: this.config.permissions,
-            type: 'revox_connection'
+            type: 'revox_connection',
         });
     }
 
@@ -217,13 +219,12 @@ class RevoXWalletSDK {
 
         try {
             this.socket.emit('session:status', { sessionId: this.currentSession.sessionId });
-            
+
             // Return current known status immediately
             return {
                 connected: this.isConnected,
-                walletAddress: this.currentSession.walletAddress
+                walletAddress: this.currentSession.walletAddress,
             };
-
         } catch (error) {
             this.emit('error', { message: error.message, type: 'status_check_failed' });
             return { connected: false };
@@ -240,7 +241,7 @@ class RevoXWalletSDK {
             destination: paymentData.destination,
             amount: paymentData.amount,
             destinationTag: paymentData.destinationTag,
-            memo: paymentData.memo
+            memo: paymentData.memo,
         });
     }
 
@@ -253,7 +254,7 @@ class RevoXWalletSDK {
         return this.sendTransaction('trust_set', {
             currency: trustData.currency,
             issuer: trustData.issuer,
-            limit: trustData.limit
+            limit: trustData.limit,
         });
     }
 
@@ -264,7 +265,7 @@ class RevoXWalletSDK {
      * @param {number} expirationMinutes - Expiration time in minutes
      * @returns {Promise<{requestId: string, expiresIn: number}>}
      */
-    async sendTransaction(transactionType, transactionData, expirationMinutes = 5) {
+    async sendTransaction(transactionType, transactionData, expirationMinutes = 2) {
         if (!this.isConnected || !this.currentSession) {
             throw new Error('Wallet not connected. Please connect first.');
         }
@@ -273,14 +274,14 @@ class RevoXWalletSDK {
             const response = await fetch(`${this.config.apiUrl}/webauth/transaction/create`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     sessionId: this.currentSession.sessionId,
                     transactionType,
                     transactionData,
-                    expirationMinutes
-                })
+                    expirationMinutes,
+                }),
             });
 
             const result = await response.json();
@@ -292,11 +293,10 @@ class RevoXWalletSDK {
             this.emit('transaction:created', {
                 requestId: result.data.requestId,
                 transactionType,
-                expiresIn: result.data.expiresIn
+                expiresIn: result.data.expiresIn,
             });
 
             return result.data;
-
         } catch (error) {
             this.emit('error', { message: error.message, type: 'transaction_failed' });
             throw error;
@@ -344,7 +344,7 @@ class RevoXWalletSDK {
      */
     off(event, callback) {
         if (this.eventListeners[event]) {
-            this.eventListeners[event] = this.eventListeners[event].filter(cb => cb !== callback);
+            this.eventListeners[event] = this.eventListeners[event].filter((cb) => cb !== callback);
         }
     }
 
@@ -355,7 +355,7 @@ class RevoXWalletSDK {
      */
     emit(event, data) {
         if (this.eventListeners[event]) {
-            this.eventListeners[event].forEach(callback => callback(data));
+            this.eventListeners[event].forEach((callback) => callback(data));
         }
     }
 
@@ -368,21 +368,21 @@ class RevoXWalletSDK {
                 this.isConnected = true;
                 this.currentSession.status = 'approved';
                 this.currentSession.walletAddress = data.walletAddress;
-                
+
                 this.emit('connected', {
                     walletAddress: data.walletAddress,
-                    timestamp: data.timestamp
+                    timestamp: data.timestamp,
                 });
-                
+
                 // Resolve the connection promise
                 this.emit('connection_approved', {
                     walletAddress: data.walletAddress,
-                    approved: true
+                    approved: true,
                 });
             } else {
                 this.emit('connection_rejected', {
                     reason: 'User rejected the connection',
-                    timestamp: data.timestamp
+                    timestamp: data.timestamp,
                 });
             }
         }
@@ -396,13 +396,13 @@ class RevoXWalletSDK {
             this.emit('transaction:approved', {
                 requestId: data.requestId,
                 transactionHash: data.transactionHash,
-                timestamp: data.timestamp
+                timestamp: data.timestamp,
             });
         } else {
             this.emit('transaction:rejected', {
                 requestId: data.requestId,
                 error: data.error,
-                timestamp: data.timestamp
+                timestamp: data.timestamp,
             });
         }
     }
@@ -413,13 +413,13 @@ class RevoXWalletSDK {
     handleSessionStatus(data) {
         if (this.currentSession && data.sessionId === this.currentSession.sessionId) {
             this.currentSession.status = data.status;
-            
+
             if (data.status === 'approved' && data.walletAddress) {
                 this.isConnected = true;
                 this.currentSession.walletAddress = data.walletAddress;
-                
+
                 this.emit('connected', {
-                    walletAddress: data.walletAddress
+                    walletAddress: data.walletAddress,
                 });
             } else if (data.status === 'expired') {
                 this.emit('connection:expired');
@@ -434,7 +434,7 @@ class RevoXWalletSDK {
         return {
             isConnected: this.isConnected,
             session: this.currentSession,
-            walletAddress: this.currentSession?.walletAddress
+            walletAddress: this.currentSession?.walletAddress,
         };
     }
 }

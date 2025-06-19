@@ -1,9 +1,5 @@
 const WebConnectionSession = require('../../models/WebConnectionSession');
-const { 
-    generateExpiringCode, 
-    generateSessionId, 
-    createExpirationTime 
-} = require('../../utils/webAuth.utils');
+const { generateExpiringCode, generateSessionId, createExpirationTime } = require('../../utils/webAuth.utils');
 const { API_RESPONSE_CODE } = require('../../constants/app.constants');
 
 /**
@@ -22,8 +18,8 @@ const createMobileConnectionSession = async (request, response) => {
 
         // Validate required fields
         if (!walletAddress || !deviceId) {
-            return response.status(400).json({ 
-                error: 'Missing required fields: walletAddress and deviceId' 
+            return response.status(400).json({
+                error: 'Missing required fields: walletAddress and deviceId',
             });
         }
 
@@ -45,8 +41,8 @@ const createMobileConnectionSession = async (request, response) => {
             metadata: {
                 userAgent: request.headers['user-agent'],
                 ipAddress: request.ip || request.connection.remoteAddress,
-                permissions: ['read_balance', 'read_account_info', 'sign_transactions']
-            }
+                permissions: ['read_balance', 'read_account_info', 'sign_transactions'],
+            },
         });
 
         await session.save();
@@ -57,10 +53,9 @@ const createMobileConnectionSession = async (request, response) => {
                 sessionId,
                 code,
                 expiresAt: expiresAt.toISOString(),
-                expiresIn: 120 // seconds
-            }
+                expiresIn: 120, // seconds
+            },
         });
-
     } catch (error) {
         console.error('Error creating mobile connection session:', error);
         response.status(500).json({ error: API_RESPONSE_CODE[500] });

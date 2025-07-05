@@ -84,11 +84,14 @@ const WebConnectionSessionSchema = new mongoose.Schema(
 );
 
 // TTL index for automatic cleanup of expired auth codes only
+// This index only applies to pending sessions and uses codeExpiresAt
 WebConnectionSessionSchema.index(
     { codeExpiresAt: 1 },
     {
         expireAfterSeconds: 0,
-        partialFilterExpression: { status: 'pending' },
+        partialFilterExpression: { 
+            status: 'pending' // Only applies to pending sessions, not approved persistent ones
+        },
     }
 );
 

@@ -14,8 +14,13 @@ const cleanupExpiredSessions = async () => {
         const now = new Date();
 
         // Delete expired sessions older than 1 hour (give some buffer time)
+        // Only clean up sessions with connectionExpiresAt set (not persistent connections)
         const result = await WebConnectionSession.deleteMany({
-            expiresAt: { $lt: new Date(now.getTime() - 60 * 60 * 1000) },
+            connectionExpiresAt: { 
+                $exists: true, 
+                $ne: null,
+                $lt: new Date(now.getTime() - 60 * 60 * 1000) 
+            },
             status: { $in: ['expired', 'rejected'] },
         });
 
@@ -72,18 +77,21 @@ const cleanupOldTransactionRequests = async () => {
 
 /**
  * Clean up old approved sessions that have been inactive for more than 30 days
+ * BUT preserve persistent connections (connectionExpiresAt is null)
  */
 const cleanupInactiveSessions = async () => {
     try {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         // Delete approved sessions with no recent activity for 30+ days
+        // ONLY if they have connectionExpiresAt set (not persistent connections)
         const result = await WebConnectionSession.deleteMany({
             status: 'approved',
             lastActivity: { $lt: thirtyDaysAgo },
+            connectionExpiresAt: { $exists: true, $ne: null }, // Only clean non-persistent sessions
         });
 
-        console.log(`Cleaned up ${result.deletedCount} inactive connection sessions`);
+        console.log(`Cleaned up ${result.deletedCount} inactive connection sessions (persistent connections preserved)`);
         return result.deletedCount;
     } catch (error) {
         console.error('Error cleaning up inactive sessions:', error);
@@ -117,10 +125,10 @@ const markExpiredRecords = async () => {
     try {
         const now = new Date();
 
-        // Mark expired sessions
+        // Mark expired sessions (only those with connectionExpiresAt set)
         const expiredSessions = await WebConnectionSession.updateMany(
             {
-                expiresAt: { $lt: now },
+                connectionExpiresAt: { $exists: true, $ne: null, $lt: now },
                 status: { $in: ['pending', 'approved'] },
             },
             { status: 'expired' }

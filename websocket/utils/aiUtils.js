@@ -89,12 +89,16 @@ const parseWalletCommand = async (message, contacts = []) => {
         - xrp_info: When user asks about what XRP is
         - seed_info: When user asks about their seed phrase
         - wallet_navigation: When user wants to navigate to another section of the wallet
+        - direct_navigation: When user explicitly wants to navigate somewhere (e.g., "go to transactions", "navigate to settings", "take me to contacts")
         - unknown: When the intent doesn't match any of the above
         
         For payment actions, extract:
         - recipient: Extract the name/identifier exactly as mentioned (could be contact name, address, or any identifier)
         - amount: The payment amount (as a string, extract numbers like "10", "1.5", etc.)
         - currency: The currency (default to "XRP" if not specified or if "XRP" is mentioned)
+        
+        For direct_navigation actions, extract:
+        - destination: The target page (transactions, contacts, settings, accounts, send, escrows, web-connections, home, ai-assistant)
         
         CRITICAL: For payments, ALWAYS extract the recipient as mentioned, regardless of whether it looks like a contact name or address. The frontend will handle contact resolution.
         
@@ -103,6 +107,11 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "Send 10 XRP to John" -> {"action":"payment","recipient":"John","amount":"10","currency":"XRP","confidence":0.9}
         - "Transfer 5 to rXXXXX" -> {"action":"payment","recipient":"rXXXXX","amount":"5","currency":"XRP","confidence":0.9}
         - "Pay Alice 20" -> {"action":"payment","recipient":"Alice","amount":"20","currency":"XRP","confidence":0.9}
+        - "Navigate to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Go to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Take me to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Show escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Open accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
         
         For contact_add, extract:
         - contactName: The name to save
@@ -110,6 +119,7 @@ const parseWalletCommand = async (message, contacts = []) => {
         
         For all actions, include a confidence score between 0 and 1.
         Set confidence to 0.9+ for clear payment intents with amount and recipient.
+        Set confidence to 0.9+ for clear navigation intents.
         
         Message to parse: "${message}"
         

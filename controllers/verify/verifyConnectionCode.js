@@ -32,8 +32,8 @@ const verifyConnectionCode = async (request, response) => {
             });
         }
 
-        // Check if session has expired
-        if (new Date() > session.expiresAt) {
+        // Check if code has expired
+        if (new Date() > session.codeExpiresAt) {
             // Update session status to expired
             session.status = 'expired';
             await session.save();
@@ -55,8 +55,9 @@ const verifyConnectionCode = async (request, response) => {
                 websiteOrigin: session.websiteOrigin,
                 websiteIcon: session.websiteIcon,
                 permissions: session.metadata.permissions,
-                expiresAt: session.expiresAt.toISOString(),
-                remainingTime: Math.max(0, Math.floor((session.expiresAt - new Date()) / 1000)),
+                codeExpiresAt: session.codeExpiresAt.toISOString(),
+                remainingTime: Math.max(0, Math.floor((session.codeExpiresAt - new Date()) / 1000)),
+                message: 'Once approved, this connection will persist until manually removed',
             },
         });
     } catch (error) {

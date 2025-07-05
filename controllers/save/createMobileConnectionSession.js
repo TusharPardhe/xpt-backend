@@ -26,7 +26,7 @@ const createMobileConnectionSession = async (request, response) => {
         // Generate session data
         const sessionId = generateSessionId();
         const code = generateExpiringCode();
-        const expiresAt = createExpirationTime(2); // 2 minutes
+        const codeExpiresAt = createExpirationTime(2); // 2 minutes for code only
 
         // Create session record
         const session = new WebConnectionSession({
@@ -36,7 +36,8 @@ const createMobileConnectionSession = async (request, response) => {
             deviceId,
             websiteOrigin: 'mobile_generated',
             websiteName: 'Mobile Generated Code',
-            expiresAt,
+            codeExpiresAt, // Only the auth code expires
+            connectionExpiresAt: null, // Connection will be persistent once approved
             status: 'pending',
             metadata: {
                 userAgent: request.headers['user-agent'],
@@ -52,8 +53,9 @@ const createMobileConnectionSession = async (request, response) => {
             data: {
                 sessionId,
                 code,
-                expiresAt: expiresAt.toISOString(),
-                expiresIn: 120, // seconds
+                codeExpiresAt: codeExpiresAt.toISOString(),
+                expiresIn: 120, // seconds - only for the auth code
+                message: 'Once approved, this connection will persist until manually removed',
             },
         });
     } catch (error) {

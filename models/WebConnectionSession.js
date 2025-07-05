@@ -41,9 +41,14 @@ const WebConnectionSessionSchema = new mongoose.Schema(
             default: 'pending',
             index: true,
         },
-        expiresAt: {
+        codeExpiresAt: {
             type: Date,
             required: true,
+            index: true,
+        },
+        connectionExpiresAt: {
+            type: Date,
+            required: false,
             index: true,
         },
         approvedAt: {
@@ -74,12 +79,19 @@ const WebConnectionSessionSchema = new mongoose.Schema(
     }
 );
 
-// TTL index for automatic cleanup of expired sessions
-WebConnectionSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+// TTL index for automatic cleanup of expired auth codes only
+WebConnectionSessionSchema.index(
+    { codeExpiresAt: 1 },
+    {
+        expireAfterSeconds: 0,
+        partialFilterExpression: { status: 'pending' },
+    }
+);
 
 // Compound indexes for efficient queries
 WebConnectionSessionSchema.index({ code: 1, status: 1 });
 WebConnectionSessionSchema.index({ sessionId: 1, status: 1 });
 WebConnectionSessionSchema.index({ walletAddress: 1, status: 1 });
+WebConnectionSessionSchema.index({ walletAddress: 1, websiteOrigin: 1, status: 1 });
 
 module.exports = mongoose.model('WebConnectionSession', WebConnectionSessionSchema);

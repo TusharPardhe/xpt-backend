@@ -13,11 +13,15 @@ const getConnectedSessions = async (req, res) => {
             });
         }
 
-        // Find all connected sessions for this wallet
+        // Find all approved sessions for this wallet (no expiration filter for approved connections)
         const connectedSessions = await WebConnectionSession.find({
             walletAddress,
             status: 'approved',
-            expiresAt: { $gt: new Date() }, // Only active sessions
+            // Only filter by connection expiration if it's set (for backwards compatibility)
+            $or: [
+                { connectionExpiresAt: null }, // Persistent connections
+                { connectionExpiresAt: { $gt: new Date() } } // Active timed connections
+            ]
         }).sort({ connectedAt: -1 }); // Most recent first
 
         const sessions = connectedSessions.map((session) => ({
@@ -25,10 +29,14 @@ const getConnectedSessions = async (req, res) => {
             websiteName: session.websiteName,
             websiteOrigin: session.websiteOrigin,
             websiteIcon: session.websiteIcon,
-            permissions: session.permissions,
+            permissions: session.metadata.permissions,
             connectedAt: session.connectedAt?.toISOString() || session.createdAt.toISOString(),
-            expiresAt: session.expiresAt.toISOString(),
-            remainingTime: Math.max(0, Math.floor((session.expiresAt - new Date()) / 1000)),
+            lastActivity: session.lastActivity?.toISOString() || session.connectedAt?.toISOString(),
+            isPersistent: !session.connectionExpiresAt,
+            connectionExpiresAt: session.connectionExpiresAt?.toISOString() || null,
+            remainingTime: session.connectionExpiresAt ? 
+                Math.max(0, Math.floor((session.connectionExpiresAt - new Date()) / 1000)) : 
+                null, // null means persistent
         }));
 
         res.json({

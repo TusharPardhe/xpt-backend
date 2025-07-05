@@ -33,13 +33,13 @@ const respondToConnectionRequest = async (request, response) => {
             });
         }
 
-        // Check if session has expired
-        if (new Date() > session.expiresAt) {
+        // Check if session has expired (code expiration only)
+        if (new Date() > session.codeExpiresAt) {
             session.status = 'expired';
             await session.save();
 
             return response.status(410).json({
-                error: 'Session has expired',
+                error: 'Connection code has expired',
             });
         }
 
@@ -57,14 +57,14 @@ const respondToConnectionRequest = async (request, response) => {
                 });
             }
 
-            // Update session with approval and extend expiration to 1 day
+            // Update session with approval - make connection persistent
             session.status = 'approved';
             session.walletAddress = walletAddress;
             session.deviceId = deviceId;
             session.approvedAt = new Date();
             session.connectedAt = new Date();
-            // Extend session to 1 day (24 hours) from approval
-            session.expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+            // Make connection persistent (no expiration) unless specifically requested
+            session.connectionExpiresAt = null; // Persistent connection
         } else {
             // Update session with rejection
             session.status = 'rejected';
@@ -81,6 +81,9 @@ const respondToConnectionRequest = async (request, response) => {
                 status: session.status,
                 walletAddress: session.walletAddress,
                 approvedAt: session.approvedAt,
+                isPersistent: !session.connectionExpiresAt,
+                connectionExpiresAt: session.connectionExpiresAt,
+                message: session.status === 'approved' ? 'Connection approved and will persist until manually removed' : 'Connection rejected',
             },
         });
     } catch (error) {

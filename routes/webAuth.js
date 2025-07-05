@@ -9,6 +9,7 @@ const respondToConnectionRequest = require('../controllers/update/respondToConne
 const createTransactionRequest = require('../controllers/save/createTransactionRequest');
 const getPendingTransactionRequests = require('../controllers/fetch/getPendingTransactionRequests');
 const getConnectedSessions = require('../controllers/fetch/getConnectedSessions');
+const checkExistingConnection = require('../controllers/fetch/checkExistingConnection');
 const removeWebConnectionSession = require('../controllers/delete/removeWebConnectionSession');
 const updatePushToken = require('../controllers/update/updatePushToken');
 
@@ -24,6 +25,7 @@ router.get('/transaction/pending', getPendingTransactionRequests);
 
 // Session management routes
 router.get('/sessions/connected', getConnectedSessions);
+router.get('/sessions/check', checkExistingConnection);
 router.delete('/sessions/:sessionId', removeWebConnectionSession);
 
 // Push notification routes

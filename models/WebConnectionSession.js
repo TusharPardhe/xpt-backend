@@ -59,6 +59,10 @@ const WebConnectionSessionSchema = new mongoose.Schema(
             type: Date,
             required: false,
         },
+        disconnectedAt: {
+            type: Date,
+            required: false,
+        },
         lastActivity: {
             type: Date,
             default: Date.now,

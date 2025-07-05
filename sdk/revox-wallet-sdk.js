@@ -24,6 +24,42 @@ class RevoXWalletSDK {
 
         // Auto-connect WebSocket
         this.initializeWebSocket();
+        
+        // Try to restore existing connection
+        this.tryRestoreConnection();
+    }
+
+    /**
+     * Try to restore existing persistent connection
+     */
+    async tryRestoreConnection() {
+        try {
+            const existingConnection = await this.checkExistingConnection();
+            
+            if (existingConnection.hasConnection) {
+                console.log('Restored existing persistent connection');
+                
+                this.currentSession = {
+                    sessionId: existingConnection.sessionId,
+                    status: 'approved',
+                    walletAddress: existingConnection.walletAddress,
+                    isPersistent: existingConnection.isPersistent
+                };
+                
+                this.isConnected = true;
+                
+                // Emit connected event
+                this.emit('connected', {
+                    walletAddress: existingConnection.walletAddress,
+                    isPersistent: existingConnection.isPersistent,
+                    restored: true,
+                    connectedAt: existingConnection.connectedAt,
+                    lastActivity: existingConnection.lastActivity
+                });
+            }
+        } catch (error) {
+            console.warn('Could not restore existing connection:', error.message);
+        }
     }
 
     /**
@@ -88,11 +124,46 @@ class RevoXWalletSDK {
 
     /**
      * Request connection to RevoX wallet
-     * Compatible with Xaman-style connection flow
-     * @returns {Promise<{sessionId: string, code: string, expiresIn: number, qrCode?: string}>}
+     * First checks for existing connection, then creates new one if needed
+     * @returns {Promise<{sessionId: string, code: string, expiresIn: number, qrCode?: string, hasExistingConnection?: boolean}>}
      */
     async requestConnection() {
         try {
+            // First check if there's an existing connection
+            const existingConnection = await this.checkExistingConnection();
+            
+            if (existingConnection.hasConnection) {
+                console.log('Found existing persistent connection');
+                
+                this.currentSession = {
+                    sessionId: existingConnection.sessionId,
+                    status: 'approved',
+                    walletAddress: existingConnection.walletAddress,
+                    isPersistent: existingConnection.isPersistent
+                };
+                
+                this.isConnected = true;
+                
+                // Emit connected event immediately
+                this.emit('connected', {
+                    walletAddress: existingConnection.walletAddress,
+                    isPersistent: existingConnection.isPersistent,
+                    connectedAt: existingConnection.connectedAt,
+                    lastActivity: existingConnection.lastActivity
+                });
+                
+                return {
+                    hasExistingConnection: true,
+                    sessionId: existingConnection.sessionId,
+                    walletAddress: existingConnection.walletAddress,
+                    isPersistent: existingConnection.isPersistent,
+                    message: 'Using existing persistent connection'
+                };
+            }
+
+            // No existing connection, create a new one
+            console.log('No existing connection found, creating new connection request');
+            
             // Clear any existing connection
             this.currentSession = null;
             this.isConnected = false;
@@ -119,7 +190,7 @@ class RevoXWalletSDK {
             this.currentSession = {
                 sessionId: result.data.sessionId,
                 code: result.data.code,
-                expiresAt: new Date(result.data.expiresAt),
+                codeExpiresAt: new Date(result.data.codeExpiresAt),
                 status: 'pending',
             };
 
@@ -151,11 +222,20 @@ class RevoXWalletSDK {
                 });
             });
 
-            // Return session data for display
-            return {
+            this.emit('connection:created', {
                 sessionId: this.currentSession.sessionId,
                 code: this.currentSession.code,
                 expiresIn: result.data.expiresIn,
+                message: result.data.message
+            });
+
+            // Return session data for display
+            return {
+                hasExistingConnection: false,
+                sessionId: this.currentSession.sessionId,
+                code: this.currentSession.code,
+                expiresIn: result.data.expiresIn,
+                message: result.data.message,
                 qrCode: this.generateQRCodeData(this.currentSession.code),
                 // Xaman-compatible fields
                 uuid: this.currentSession.sessionId,
@@ -172,6 +252,48 @@ class RevoXWalletSDK {
         } catch (error) {
             this.emit('error', { type: 'connection_failed', error: error.message });
             throw error;
+        }
+    }
+
+    /**
+     * Check for existing connection with this website
+     * @param {string} walletAddress - Optional wallet address to check for
+     * @returns {Promise<{hasConnection: boolean, sessionId?: string, walletAddress?: string}>}
+     */
+    async checkExistingConnection(walletAddress = null) {
+        // If we have a stored wallet address from previous session, use it
+        const storedAddress = walletAddress || localStorage.getItem('revox_wallet_address');
+        
+        if (!storedAddress) {
+            return { hasConnection: false, message: 'No wallet address available' };
+        }
+
+        try {
+            const response = await fetch(`${this.config.apiUrl}/webauth/sessions/check?` + new URLSearchParams({
+                walletAddress: storedAddress,
+                websiteOrigin: window.location.origin
+            }), {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Failed to check existing connection');
+            }
+
+            if (result.data.hasConnection) {
+                // Store wallet address for future use
+                localStorage.setItem('revox_wallet_address', storedAddress);
+            }
+
+            return result.data;
+        } catch (error) {
+            console.warn('Error checking existing connection:', error.message);
+            return { hasConnection: false, error: error.message };
         }
     }
 
@@ -305,11 +427,75 @@ class RevoXWalletSDK {
 
     /**
      * Disconnect from wallet
+     * @param {boolean} forceDisconnect - Force disconnect even from persistent connections
      */
-    disconnect() {
-        this.isConnected = false;
-        this.currentSession = null;
-        this.emit('disconnected');
+    async disconnect(forceDisconnect = false) {
+        try {
+            console.log('Disconnect requested:', { 
+                forceDisconnect, 
+                currentSession: this.currentSession,
+                isConnected: this.isConnected 
+            });
+
+            // If we have an active session, try to disconnect it on the server
+            if (this.currentSession && this.currentSession.sessionId && this.currentSession.walletAddress) {
+                try {
+                    console.log('Attempting server disconnect for session:', this.currentSession.sessionId);
+                    
+                    const response = await fetch(`${this.config.apiUrl}/webauth/sessions/${this.currentSession.sessionId}?` + new URLSearchParams({
+                        walletAddress: this.currentSession.walletAddress
+                    }), {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        console.log('Session successfully disconnected on server:', result.data?.message);
+                    } else {
+                        console.warn('Server disconnect failed:', result.error);
+                        // Continue with local cleanup even if server disconnect fails
+                    }
+                } catch (error) {
+                    console.warn('Error disconnecting from server:', error.message);
+                    // Continue with local cleanup even if server disconnect fails
+                }
+            } else {
+                console.log('No active session to disconnect on server');
+            }
+
+            // Local cleanup
+            this.isConnected = false;
+            
+            if (forceDisconnect) {
+                // Remove stored wallet address to prevent auto-reconnection
+                localStorage.removeItem('revox_wallet_address');
+                console.log('Force disconnect: removed persistent connection data');
+            }
+            
+            const sessionId = this.currentSession?.sessionId;
+            this.currentSession = null;
+            
+            this.emit('disconnected', { 
+                forceDisconnect, 
+                sessionId,
+                timestamp: new Date().toISOString()
+            });
+            
+            console.log('Local disconnect completed');
+            return { success: true, forceDisconnect };
+        } catch (error) {
+            console.error('Error during disconnect:', error);
+            // Still perform local cleanup
+            this.isConnected = false;
+            this.currentSession = null;
+            this.emit('disconnected', { forceDisconnect, error: error.message });
+            
+            throw error;
+        }
     }
 
     /**
@@ -368,9 +554,14 @@ class RevoXWalletSDK {
                 this.isConnected = true;
                 this.currentSession.status = 'approved';
                 this.currentSession.walletAddress = data.walletAddress;
+                this.currentSession.isPersistent = data.isPersistent || true; // Default to persistent
+
+                // Store wallet address for future persistent connections
+                localStorage.setItem('revox_wallet_address', data.walletAddress);
 
                 this.emit('connected', {
                     walletAddress: data.walletAddress,
+                    isPersistent: this.currentSession.isPersistent,
                     timestamp: data.timestamp,
                 });
 
@@ -378,6 +569,7 @@ class RevoXWalletSDK {
                 this.emit('connection_approved', {
                     walletAddress: data.walletAddress,
                     approved: true,
+                    isPersistent: this.currentSession.isPersistent,
                 });
             } else {
                 this.emit('connection_rejected', {

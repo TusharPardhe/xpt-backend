@@ -115,6 +115,42 @@
             overflow-y: auto;
             margin-top: 20px;
         }
+
+        .connection-info {
+            background: #e8f5e8;
+            border: 1px solid #c8e6c9;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .connection-info h3 {
+            margin: 0 0 12px 0;
+            color: #2e7d32;
+        }
+
+        .connection-info p {
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .persistent-badge {
+            background: #2e7d32;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .temporary-badge {
+            background: #ff9800;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -132,17 +168,21 @@
             <h2>📱 Wallet Connection</h2>
             <button id="connectBtn" class="btn">Connect Wallet</button>
             <button id="disconnectBtn" class="btn" disabled>Disconnect</button>
+            <button id="forceDisconnectBtn" class="btn" disabled>Force Disconnect</button>
             <button id="checkStatusBtn" class="btn">Check Status</button>
 
             <div id="connectionCode" style="display: none;">
                 <h3>Enter this code in your RevoX mobile app:</h3>
                 <div class="code-display" id="codeDisplay">------</div>
                 <p>Code expires in <span id="countdown">--</span> seconds</p>
+                <small>Once approved, this connection will be persistent until manually removed.</small>
             </div>
 
-            <div id="connectionInfo" style="display: none;">
+            <div id="connectionInfo" class="connection-info" style="display: none;">
                 <h3>✅ Connected to Wallet</h3>
                 <p><strong>Address:</strong> <span id="walletAddress">--</span></p>
+                <p><strong>Connection Type:</strong> <span id="connectionType" class="persistent-badge">--</span></p>
+                <p><strong>Last Activity:</strong> <span id="lastActivity">--</span></p>
             </div>
         </section>
 
@@ -213,6 +253,7 @@
         // DOM elements
         const connectBtn = document.getElementById('connectBtn');
         const disconnectBtn = document.getElementById('disconnectBtn');
+        const forceDisconnectBtn = document.getElementById('forceDisconnectBtn');
         const checkStatusBtn = document.getElementById('checkStatusBtn');
         const sendPaymentBtn = document.getElementById('sendPaymentBtn');
         const setTrustBtn = document.getElementById('setTrustBtn');
@@ -224,6 +265,8 @@
         const countdownEl = document.getElementById('countdown');
         const connectionInfoEl = document.getElementById('connectionInfo');
         const walletAddressEl = document.getElementById('walletAddress');
+        const connectionTypeEl = document.getElementById('connectionType');
+        const lastActivityEl = document.getElementById('lastActivity');
         const logsEl = document.getElementById('logs');
 
         let countdownTimer = null;
@@ -259,15 +302,27 @@
             }, 1000);
         }
 
-        function updateUI(connected) {
+        function updateUI(connected, connectionData = {}) {
             connectBtn.disabled = connected;
             disconnectBtn.disabled = !connected;
+            forceDisconnectBtn.disabled = !connected;
             sendPaymentBtn.disabled = !connected;
             setTrustBtn.disabled = !connected;
 
             if (connected) {
                 connectionCodeEl.style.display = 'none';
                 connectionInfoEl.style.display = 'block';
+                
+                // Update connection info
+                walletAddressEl.textContent = connectionData.walletAddress || '--';
+                
+                const isPersistent = connectionData.isPersistent !== false; // Default to persistent
+                connectionTypeEl.textContent = isPersistent ? 'Persistent' : 'Temporary';
+                connectionTypeEl.className = isPersistent ? 'persistent-badge' : 'temporary-badge';
+                
+                lastActivityEl.textContent = connectionData.lastActivity ? 
+                    new Date(connectionData.lastActivity).toLocaleString() : 
+                    (connectionData.restored ? 'Restored from storage' : 'Just connected');
             } else {
                 connectionInfoEl.style.display = 'none';
             }
@@ -276,28 +331,71 @@
         // Event listeners
         connectBtn.addEventListener('click', async () => {
             try {
-                updateStatus('Creating connection session...', 'info');
+                updateStatus('Checking for existing connection...', 'info');
                 const result = await revoX.requestConnection();
 
-                codeDisplayEl.textContent = result.code;
-                connectionCodeEl.style.display = 'block';
-                startCountdown(result.expiresIn);
+                if (result.hasExistingConnection) {
+                    updateStatus(`Restored persistent connection: ${result.walletAddress}`, 'success');
+                    updateUI(true, result);
+                } else {
+                    codeDisplayEl.textContent = result.code;
+                    connectionCodeEl.style.display = 'block';
+                    startCountdown(result.expiresIn);
 
-                updateStatus('Connection code generated. Enter it in your mobile app.', 'info');
+                    updateStatus('Connection code generated. Enter it in your mobile app.', 'info');
+                    
+                    if (result.message) {
+                        logEvent(`INFO: ${result.message}`);
+                    }
+                }
             } catch (error) {
                 updateStatus(`Connection failed: ${error.message}`, 'error');
             }
         });
 
-        disconnectBtn.addEventListener('click', () => {
-            revoX.disconnect();
-            updateUI(false);
-            if (countdownTimer) clearInterval(countdownTimer);
+        disconnectBtn.addEventListener('click', async () => {
+            try {
+                disconnectBtn.disabled = true;
+                disconnectBtn.textContent = 'Disconnecting...';
+                
+                await revoX.disconnect(false); // Soft disconnect, keeps persistent connection
+                updateUI(false);
+                updateStatus('Disconnected from wallet (connection remains persistent)', 'info');
+                if (countdownTimer) clearInterval(countdownTimer);
+            } catch (error) {
+                updateStatus(`Disconnect failed: ${error.message}`, 'error');
+            } finally {
+                disconnectBtn.disabled = false;
+                disconnectBtn.textContent = 'Disconnect';
+            }
+        });
+
+        forceDisconnectBtn.addEventListener('click', async () => {
+            try {
+                forceDisconnectBtn.disabled = true;
+                forceDisconnectBtn.textContent = 'Force Disconnecting...';
+                
+                await revoX.disconnect(true); // Force disconnect, removes persistent connection
+                updateUI(false);
+                updateStatus('Force disconnected - persistent connection removed', 'info');
+                if (countdownTimer) clearInterval(countdownTimer);
+            } catch (error) {
+                updateStatus(`Force disconnect failed: ${error.message}`, 'error');
+            } finally {
+                forceDisconnectBtn.disabled = false;
+                forceDisconnectBtn.textContent = 'Force Disconnect';
+            }
         });
 
         checkStatusBtn.addEventListener('click', async () => {
             const status = await revoX.checkConnection();
+            const connectionInfo = revoX.getConnectionInfo();
+            
             updateStatus(`Connected: ${status.connected}, Address: ${status.walletAddress || 'N/A'}`, 'info');
+            
+            if (connectionInfo.session) {
+                logEvent(`Session Info: ${JSON.stringify(connectionInfo.session, null, 2)}`);
+            }
         });
 
         sendPaymentBtn.addEventListener('click', async () => {
@@ -357,12 +455,18 @@
         // SDK event listeners
         revoX.on('connection:created', (data) => {
             logEvent(`Connection code created: ${data.code} (expires in ${data.expiresIn}s)`);
+            if (data.message) {
+                logEvent(`Message: ${data.message}`);
+            }
         });
 
         revoX.on('connected', (data) => {
-            updateStatus(`Successfully connected to wallet: ${data.walletAddress}`, 'success');
-            walletAddressEl.textContent = data.walletAddress;
-            updateUI(true);
+            const connectionType = data.isPersistent ? 'persistent' : 'temporary';
+            const restored = data.restored ? ' (restored)' : '';
+            
+            updateStatus(`Successfully connected to wallet: ${data.walletAddress} (${connectionType}${restored})`, 'success');
+            
+            updateUI(true, data);
             if (countdownTimer) clearInterval(countdownTimer);
         });
 
@@ -377,8 +481,11 @@
             updateUI(false);
         });
 
-        revoX.on('disconnected', () => {
-            updateStatus('Disconnected from wallet', 'info');
+        revoX.on('disconnected', (data) => {
+            const message = data.forceDisconnect ? 
+                'Force disconnected from wallet - persistent connection removed' : 
+                'Disconnected from wallet';
+            updateStatus(message, 'info');
             updateUI(false);
         });
 
@@ -404,6 +511,18 @@
         // Initialize UI
         updateUI(false);
         logEvent('RevoX Wallet SDK Demo initialized');
+        
+        // Check for existing connection on page load
+        setTimeout(async () => {
+            const connectionInfo = revoX.getConnectionInfo();
+            if (connectionInfo.isConnected) {
+                logEvent('Found existing connection on page load');
+                updateUI(true, connectionInfo.session);
+                updateStatus(`Auto-connected to existing session: ${connectionInfo.walletAddress}`, 'success');
+            } else {
+                logEvent('No existing connection found');
+            }
+        }, 1000); // Give SDK time to initialize
     </script>
 </body>
 

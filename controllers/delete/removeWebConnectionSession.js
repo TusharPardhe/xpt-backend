@@ -26,19 +26,40 @@ const removeWebConnectionSession = async (req, res) => {
         const session = await WebConnectionSession.findOne({
             sessionId,
             walletAddress,
-            status: 'connected',
+            status: 'approved', // Use 'approved' status as that's what we're using
         });
 
         if (!session) {
+            // Try to find any session with this sessionId to give better error message
+            const anySession = await WebConnectionSession.findOne({ sessionId });
+            
+            if (!anySession) {
+                return res.status(404).json({
+                    error: 'Session not found',
+                });
+            }
+            
+            if (anySession.walletAddress !== walletAddress) {
+                return res.status(403).json({
+                    error: 'Session does not belong to this wallet',
+                });
+            }
+            
+            if (anySession.status !== 'approved') {
+                return res.status(400).json({
+                    error: `Session is not active (status: ${anySession.status})`,
+                });
+            }
+            
             return res.status(404).json({
-                error: 'Connected session not found or already disconnected',
+                error: 'Connection not found or already disconnected',
             });
         }
 
         // Update session status to disconnected
-        session.status = 'disconnected';
+        session.status = 'rejected'; // Use 'rejected' as the final state for disconnected sessions
         session.disconnectedAt = new Date();
-        session.disconnectionReason = 'user_initiated';
+        session.metadata.disconnectionReason = 'user_initiated';
         await session.save();
 
         // Cancel any pending transaction requests for this session

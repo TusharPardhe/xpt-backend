@@ -4,7 +4,8 @@ const { Client, Wallet } = require('xrpl');
 
 const sendEscrowTransactions = async (req, res) => {
     try {
-        const client = new Client(process.env.XRPL_SERVER);
+        const xrplServerUrl = req.query.networkServer || process.env.XRPL_SERVER;
+        const client = new Client(xrplServerUrl);
         await client.connect();
         const updatedEscrows = [];
         // find escrows less than or equal to current time

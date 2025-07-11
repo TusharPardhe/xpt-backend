@@ -1,9 +1,9 @@
-const { Client } = require("xrpl");
+const { Client } = require('xrpl');
 
-const Airdrop = require("../../models/Airdrop");
+const Airdrop = require('../../models/Airdrop');
 
-const { API_RESPONSE_CODE, XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES } = require("../../constants/app.constants");
-const { DISABLE_MASTER_KEY, NO_FREEZE } = XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES
+const { API_RESPONSE_CODE, XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES } = require('../../constants/app.constants');
+const { DISABLE_MASTER_KEY, NO_FREEZE } = XRPL_ACCOUNT_FLAGS_DECIMAL_VALUES;
 
 const storeAirdropDetails = async (request, response) => {
     try {
@@ -14,7 +14,21 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        let { projectName, ticker, currencyName, date, issuer, addedByAccount, blackholed, noFreeze, links, description, logo, maxSupply } = body;
+        let {
+            projectName,
+            ticker,
+            currencyName,
+            date,
+            issuer,
+            addedByAccount,
+            blackholed,
+            noFreeze,
+            links,
+            description,
+            logo,
+            maxSupply,
+            networkServer,
+        } = body;
 
         if (!(projectName && ticker && currencyName && date && issuer && addedByAccount)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
@@ -34,11 +48,12 @@ const storeAirdropDetails = async (request, response) => {
             return;
         }
 
-        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        const xrplServerUrl = networkServer || process.env.XRPL_SERVER;
+        const client = new Client(xrplServerUrl, { connectionTimeout: 10000 });
         await client.connect();
 
         const issuerAccountDetails = await client.request({
-            command: "account_info",
+            command: 'account_info',
             account: issuer,
         });
 
@@ -46,7 +61,7 @@ const storeAirdropDetails = async (request, response) => {
             const accountFlags = issuerAccountDetails.result.account_data.Flags;
             blackholed = !!(DISABLE_MASTER_KEY && accountFlags);
             noFreeze = !!(NO_FREEZE && accountFlags);
-        };
+        }
 
         const dataToStore = {
             projectName,
@@ -69,7 +84,6 @@ const storeAirdropDetails = async (request, response) => {
 
         response.status(200).send({ success: API_RESPONSE_CODE[200] });
         await client.disconnect();
-        
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: API_RESPONSE_CODE[500] });

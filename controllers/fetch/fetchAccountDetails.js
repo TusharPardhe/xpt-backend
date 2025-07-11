@@ -6,14 +6,15 @@ const Approver = require('../../models/Approver');
 const Escrow = require('../../models/Escrow');
 
 const fetchAccountDetails = async (req, res) => {
-    const { address, trustlineLimit } = req.query;
+    const { address, trustlineLimit, networkServer } = req.query;
 
     if (!address) {
         return res.status(400).send({ error: API_RESPONSE_CODE[400] });
     }
 
     try {
-        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        const xrplServerUrl = networkServer || process.env.XRPL_SERVER;
+        const client = new Client(xrplServerUrl, { connectionTimeout: 10000 });
         console.log('Fetching account details for address:', address, process.env.XRPL_SERVER);
         await client.connect();
 

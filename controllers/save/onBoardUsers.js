@@ -1,7 +1,7 @@
-const { Client } = require("xrpl");
+const { Client } = require('xrpl');
 
-const UserSchema = require("../../models/UserSchema");
-const { API_RESPONSE_CODE } = require("../../constants/app.constants");
+const UserSchema = require('../../models/UserSchema');
+const { API_RESPONSE_CODE } = require('../../constants/app.constants');
 
 const onBoardUsers = async (request, response) => {
     try {
@@ -12,7 +12,7 @@ const onBoardUsers = async (request, response) => {
             return;
         }
 
-        const { userName, address, password } = body;
+        const { userName, address, password, networkServer } = body;
         // Validate request
         if (!(userName && address && password)) {
             response.status(400).send({ error: API_RESPONSE_CODE[400] });
@@ -20,12 +20,13 @@ const onBoardUsers = async (request, response) => {
         }
 
         // verify XRPL Address
-        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        const xrplServerUrl = networkServer || process.env.XRPL_SERVER;
+        const client = new Client(xrplServerUrl, { connectionTimeout: 10000 });
         await client.connect();
 
         const errorneousAccount = await client
             .request({
-                command: "account_info",
+                command: 'account_info',
                 account: address,
             })
             .then(() => false)
@@ -42,12 +43,12 @@ const onBoardUsers = async (request, response) => {
         const doestAddressExist = await UserSchema.findOne({ address });
 
         if (doestUsernameExist) {
-            response.status(409).send({ error: "Username already exists." });
+            response.status(409).send({ error: 'Username already exists.' });
             return;
         }
 
         if (doestAddressExist) {
-            response.status(409).send({ error: "XRPL address already exists." });
+            response.status(409).send({ error: 'XRPL address already exists.' });
             return;
         }
 
@@ -55,7 +56,6 @@ const onBoardUsers = async (request, response) => {
         await User.save();
         response.status(200).send({ success: API_RESPONSE_CODE[200] });
         await client.disconnect();
-        
     } catch (err) {
         console.log(err);
         response.status(500).send({ error: API_RESPONSE_CODE[500] });

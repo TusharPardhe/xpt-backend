@@ -4,7 +4,7 @@ const Escrow = require('../../models/Escrow');
 const { v4: uuidv4 } = require('uuid');
 
 const accountEscrows = async (req, res) => {
-    const { account, time, txs, createdBy, approvedBy } = req.body;
+    const { account, time, txs, createdBy, approvedBy, networkServer } = req.body;
 
     try {
         if (!account || !txs || !createdBy || !approvedBy) {

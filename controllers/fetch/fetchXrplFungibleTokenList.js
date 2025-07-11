@@ -17,7 +17,7 @@ const compareCurrencyName = (searchValue, currency) => {
 const fetchXrplFungibleTokenList = async (request, response) => {
     try {
         let {
-            query: { offset, limit, pageNumber, searchValue, apiLimit, sort_by },
+            query: { offset, limit, pageNumber, searchValue, apiLimit, sort_by, networkServer },
         } = request;
         offset = offset ? parseInt(offset) : 0;
         limit = limit ? parseInt(limit) : 100;

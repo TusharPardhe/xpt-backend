@@ -140,14 +140,14 @@ const processTransaction = (tx, meta, accountAddress) => {
 const fetchAccountTransactions = async (request, response) => {
     try {
         // Get parameters from query instead of body
-        let { account, limit, format, ledger, seq } = request.query;
+        let { account, limit, format, ledger, seq, networkServer } = request.query;
         limit = limit ?? 25;
         ledger = ledger ?? undefined;
         seq = seq ?? undefined;
         // Check if user wants raw format (for developers) or UI format (for frontend)
         const returnRawFormat = format === 'raw';
-
-        const client = new Client(process.env.XRPL_SERVER, { connectionTimeout: 10000 });
+        const xrplServerUrl = networkServer || process.env.XRPL_SERVER;
+        const client = new Client(xrplServerUrl, { connectionTimeout: 10000 });
         await client.connect();
 
         if (!(account && limit)) {

@@ -1,5 +1,4 @@
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-const { Client } = require('xrpl');
+const { Client, dropsToXrp } = require('xrpl');
 
 const { API_RESPONSE_CODE } = require('../../constants/app.constants');
 const Approver = require('../../models/Approver');
@@ -46,7 +45,7 @@ const fetchAccountDetails = async (req, res) => {
             });
         }
         console.log('Address:', address);
-        let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, xrpScan, server_info] =
+        let [isApprover, totalCompletedEscrows, totalPendingEscrows, gateway_balances, account_lines, account_info, server_info] =
             await Promise.all([
                 Approver.findOne({ address }),
                 Escrow.countDocuments({ completed: true, address }),
@@ -62,7 +61,11 @@ const fetchAccountDetails = async (req, res) => {
                     account: address,
                     limit: trustlineLimit ? parseInt(trustlineLimit) : 200,
                 }),
-                fetch(`https://api.xrpscan.com/api/v1/account/${address}`).then((res) => res.json()),
+                client.request({
+                    command: 'account_info',
+                    ledger_index: 'validated',
+                    account: address,
+                }),
                 client.request({
                     command: 'server_info',
                 }),
@@ -71,6 +74,11 @@ const fetchAccountDetails = async (req, res) => {
         const revoCoin = account_lines.result.lines.find(
             (line) => line.currency === process.env.REVO_COIN_HEX && line.account === process.env.REVO_COIN_ISSUER
         );
+
+        // Extract account data from ledger response
+        const ledgerAccountData = account_info.result.account_data;
+        const xrpBalance = dropsToXrp(ledgerAccountData.Balance);
+        const ownerCount = ledgerAccountData.OwnerCount || 0;
 
         if (address === process.env.REVO_COIN_ISSUER) {
             return res.status(200).send({
@@ -85,9 +93,9 @@ const fetchAccountDetails = async (req, res) => {
                 revoCoinBalance: -1 * account_lines.result.lines.find((line) => line.currency === process.env.REVO_COIN_HEX).balance,
                 issuedCurrencies: gateway_balances.result.obligations,
                 xrpBalance:
-                    xrpScan.xrpBalance -
+                    xrpBalance -
                     (server_info.result.info.validated_ledger.reserve_base_xrp +
-                        server_info.result.info.validated_ledger.reserve_inc_xrp * xrpScan.ownerCount),
+                        server_info.result.info.validated_ledger.reserve_inc_xrp * ownerCount),
                 newAccount: false,
                 trustLines: account_lines.result.lines ?? [],
             });
@@ -109,9 +117,9 @@ const fetchAccountDetails = async (req, res) => {
             revoCoinBalance: revoCoin ? parseFloat(revoCoin.balance) : 0,
             issuedCurrencies: gateway_balances.result.obligations,
             xrpBalance:
-                xrpScan.xrpBalance -
+                xrpBalance -
                 (server_info.result.info.validated_ledger.reserve_base_xrp +
-                    server_info.result.info.validated_ledger.reserve_inc_xrp * xrpScan.ownerCount),
+                    server_info.result.info.validated_ledger.reserve_inc_xrp * ownerCount),
             newAccount: false,
             trustLines: account_lines.result.lines ?? [],
         };

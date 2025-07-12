@@ -1,6 +1,34 @@
 const { processAIRequest, parseWalletCommand } = require('./utils/aiUtils');
 const UserRequestCount = require('../models/UserRequestCount');
 
+// Function to get USD to target currency conversion rate
+const getUSDConversionRate = async (targetCurrency) => {
+    try {
+        // Using free exchange rate API
+        const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+        const response = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
+
+        if (!response.ok) {
+            console.log('Exchange rate API failed, trying fallback...');
+            // Fallback to another free API
+            const fallbackResponse = await fetch(`https://api.fxapi.com/v1/latest?base=USD&symbols=${targetCurrency.toUpperCase()}`);
+
+            if (!fallbackResponse.ok) {
+                return null;
+            }
+
+            const fallbackData = await fallbackResponse.json();
+            return fallbackData.rates?.[targetCurrency.toUpperCase()];
+        }
+
+        const data = await response.json();
+        return data.rates[targetCurrency.toUpperCase()];
+    } catch (error) {
+        console.error(`Error fetching conversion rate for ${targetCurrency}:`, error);
+        return null;
+    }
+};
+
 const setupAIWebSocket = (io) => {
     io.on('connection', (socket) => {
         console.log(`User connected to AI socket: ${socket.id} at ${new Date().toISOString()}`);
@@ -260,9 +288,9 @@ const setupAIWebSocket = (io) => {
                     return;
                 }
 
-                // Fetch price data from CoinGecko
+                // Always fetch price data in USD first for consistency
                 const response = await fetch(
-                    `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${normalizedTarget.toLowerCase()}&include_24hr_change=true&include_last_updated_at=true`
+                    `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`
                 );
 
                 if (!response.ok) {
@@ -276,9 +304,22 @@ const setupAIWebSocket = (io) => {
                     throw new Error('No price data available');
                 }
 
-                const price = coinData[normalizedTarget.toLowerCase()];
-                const change24h = coinData[`${normalizedTarget.toLowerCase()}_24h_change`];
+                const usdPrice = coinData.usd;
+                const change24h = coinData.usd_24h_change;
                 const lastUpdated = coinData.last_updated_at;
+
+                let finalPrice = usdPrice;
+
+                // If target currency is not USD, convert using our conversion function
+                if (normalizedTarget !== 'USD') {
+                    const conversionRate = await getUSDConversionRate(normalizedTarget);
+                    
+                    if (!conversionRate) {
+                        throw new Error(`Unable to convert USD to ${normalizedTarget}`);
+                    }
+
+                    finalPrice = usdPrice * conversionRate;
+                }
 
                 // Only increment request count on successful price fetch
                 const incrementResult = await incrementRequestCount(rateLimitResult.userRequestCount);
@@ -292,10 +333,10 @@ const setupAIWebSocket = (io) => {
                     data: {
                         currency: normalizedCurrency,
                         targetCurrency: normalizedTarget,
-                        price: price,
+                        price: finalPrice,
                         change24h: change24h ? parseFloat(change24h.toFixed(2)) : null,
                         lastUpdated: new Date(lastUpdated * 1000).toISOString(),
-                        formattedPrice: `${price.toLocaleString()} ${normalizedTarget}`,
+                        formattedPrice: `${finalPrice.toLocaleString()} ${normalizedTarget}`,
                         trend: change24h > 0 ? 'up' : change24h < 0 ? 'down' : 'neutral',
                     },
                     remainingRequests: finalRateLimitData.remainingRequests,

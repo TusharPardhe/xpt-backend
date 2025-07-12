@@ -109,22 +109,58 @@ const parseWalletCommand = async (message, contacts = []) => {
         CRITICAL: For payments, ALWAYS extract the recipient as mentioned, regardless of whether it looks like a contact name or address. The frontend will handle contact resolution.
         
         Examples:
+        
+        PAYMENT EXAMPLES:
         - "Send 1XRP to T" -> {"action":"payment","recipient":"T","amount":"1","currency":"XRP","confidence":0.9}
         - "Send 10 XRP to John" -> {"action":"payment","recipient":"John","amount":"10","currency":"XRP","confidence":0.9}
         - "Transfer 5 to rXXXXX" -> {"action":"payment","recipient":"rXXXXX","amount":"5","currency":"XRP","confidence":0.9}
         - "Pay Alice 20" -> {"action":"payment","recipient":"Alice","amount":"20","currency":"XRP","confidence":0.9}
         - "Send money to Bob" -> {"action":"payment","recipient":"Bob","confidence":0.8}
+        - "Transfer 100 XRP to Sarah" -> {"action":"payment","recipient":"Sarah","amount":"100","currency":"XRP","confidence":0.9}
+        - "Pay 0.5 XRP to Mike" -> {"action":"payment","recipient":"Mike","amount":"0.5","currency":"XRP","confidence":0.9}
+        - "Send 25 to my friend" -> {"action":"payment","recipient":"my friend","amount":"25","currency":"XRP","confidence":0.8}
         - "I want to pay someone" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Send XRP" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        
+        BALANCE CHECK EXAMPLES:
         - "What's my balance?" -> {"action":"check_balance","confidence":0.9}
         - "Check my wallet balance" -> {"action":"check_balance","confidence":0.9}
         - "How much XRP do I have?" -> {"action":"check_balance","confidence":0.9}
+        - "Show my balance" -> {"action":"check_balance","confidence":0.9}
+        - "How much money do I have?" -> {"action":"check_balance","confidence":0.9}
+        - "Check balance" -> {"action":"check_balance","confidence":0.9}
+        - "What's in my wallet?" -> {"action":"check_balance","confidence":0.9}
+        - "Current balance" -> {"action":"check_balance","confidence":0.9}
+        - "Balance check" -> {"action":"check_balance","confidence":0.9}
+        
+        ADDRESS EXAMPLES:
         - "Show my address" -> {"action":"get_address","confidence":0.9}
         - "What's my wallet address?" -> {"action":"get_address","confidence":0.9}
+        - "Get my address" -> {"action":"get_address","confidence":0.9}
+        - "My wallet address" -> {"action":"get_address","confidence":0.9}
+        - "Show address" -> {"action":"get_address","confidence":0.9}
+        - "Wallet address" -> {"action":"get_address","confidence":0.9}
+        - "Display my address" -> {"action":"get_address","confidence":0.9}
+        
+        CONTACT EXAMPLES:
         - "Find contact John" -> {"action":"contact_search","contactName":"John","confidence":0.9}
         - "Search for Alice in contacts" -> {"action":"contact_search","contactName":"Alice","confidence":0.9}
+        - "Look for Bob" -> {"action":"contact_search","contactName":"Bob","confidence":0.9}
+        - "Find Sarah" -> {"action":"contact_search","contactName":"Sarah","confidence":0.9}
+        - "Search contact Mike" -> {"action":"contact_search","contactName":"Mike","confidence":0.9}
+        
+        TRANSACTION HISTORY EXAMPLES:
         - "Show my transactions" -> {"action":"transaction_history","confidence":0.9}
         - "Transaction history" -> {"action":"transaction_history","confidence":0.9}
         - "My recent payments" -> {"action":"transaction_history","confidence":0.9}
+        - "Payment history" -> {"action":"transaction_history","confidence":0.9}
+        - "Show transactions" -> {"action":"transaction_history","confidence":0.9}
+        - "Recent transactions" -> {"action":"transaction_history","confidence":0.9}
+        - "Transaction list" -> {"action":"transaction_history","confidence":0.9}
+        - "My payments" -> {"action":"transaction_history","confidence":0.9}
+        - "Show my payment history" -> {"action":"transaction_history","confidence":0.9}
+        
+        NAVIGATION EXAMPLES:
         - "Navigate to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
         - "Go to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
         - "Take me to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
@@ -136,6 +172,11 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "Send money" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
         - "Take me to send page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
         - "Open accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Go to accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Show me contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Open contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        
+        PRICE CHECK EXAMPLES (EXTENSIVE):
         - "What's the current XRP price?" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
         - "XRP price in EUR" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
         - "XRP price in INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
@@ -143,15 +184,109 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "What is current XRP price in INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
         - "XRP to INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
         - "Price of XRP in Indian rupees" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
+        - "What's the current price of Bitcoin in Indian rupee" -> {"action":"price_check","currency":"BTC","targetCurrency":"INR","confidence":0.9}
+        - "Bitcoin price in INR" -> {"action":"price_check","currency":"BTC","targetCurrency":"INR","confidence":0.9}
+        - "BTC to INR" -> {"action":"price_check","currency":"BTC","targetCurrency":"INR","confidence":0.9}
         - "Bitcoin price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
         - "How much is Ethereum worth?" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
+        - "Ethereum price in Indian rupee" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "ETH price in EUR" -> {"action":"price_check","currency":"ETH","targetCurrency":"EUR","confidence":0.9}
+        - "Current Bitcoin price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "BTC price now" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Price of Bitcoin" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "What is Bitcoin worth now" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Check Bitcoin price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Show me Bitcoin value" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Bitcoin value in dollars" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "BTC USD price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Current BTC rate" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Bitcoin market price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "What's Bitcoin trading at" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Bitcoin cost" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "How much does Bitcoin cost" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Bitcoin worth" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Value of Bitcoin" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "Bitcoin exchange rate" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "What's the rate of Bitcoin" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "XRP price today" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Today's XRP price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP rate" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP value" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "How much is XRP" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP cost" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP worth" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Current XRP value" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP market price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP trading price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "What's XRP worth" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Price check XRP" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Check XRP price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP price check" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Show XRP price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Display XRP value" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Get XRP price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Fetch XRP rate" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "Tell me XRP price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP to USD" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP in dollars" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP USD rate" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP dollar price" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP to euro" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
+        - "XRP in euros" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
+        - "XRP EUR price" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
+        - "XRP price in GBP" -> {"action":"price_check","currency":"XRP","targetCurrency":"GBP","confidence":0.9}
+        - "XRP to GBP" -> {"action":"price_check","currency":"XRP","targetCurrency":"GBP","confidence":0.9}
+        - "XRP in pounds" -> {"action":"price_check","currency":"XRP","targetCurrency":"GBP","confidence":0.9}
+        - "XRP pound price" -> {"action":"price_check","currency":"XRP","targetCurrency":"GBP","confidence":0.9}
+        - "XRP price in Japanese yen" -> {"action":"price_check","currency":"XRP","targetCurrency":"JPY","confidence":0.9}
+        - "XRP to JPY" -> {"action":"price_check","currency":"XRP","targetCurrency":"JPY","confidence":0.9}
+        - "XRP in yen" -> {"action":"price_check","currency":"XRP","targetCurrency":"JPY","confidence":0.9}
+        - "XRP yen price" -> {"action":"price_check","currency":"XRP","targetCurrency":"JPY","confidence":0.9}
+        - "XRP price in Canadian dollars" -> {"action":"price_check","currency":"XRP","targetCurrency":"CAD","confidence":0.9}
+        - "XRP to CAD" -> {"action":"price_check","currency":"XRP","targetCurrency":"CAD","confidence":0.9}
+        - "XRP in CAD" -> {"action":"price_check","currency":"XRP","targetCurrency":"CAD","confidence":0.9}
+        - "Ethereum price in Indian rupees" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "ETH to INR" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "ETH price in INR" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "Ethereum price in rupees" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "What's Ethereum worth in INR" -> {"action":"price_check","currency":"ETH","targetCurrency":"INR","confidence":0.9}
+        - "Current Ethereum price" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
+        - "ETH price" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
+        - "ETH value" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
+        - "Litecoin price" -> {"action":"price_check","currency":"LTC","targetCurrency":"USD","confidence":0.9}
+        - "LTC price" -> {"action":"price_check","currency":"LTC","targetCurrency":"USD","confidence":0.9}
+        - "Cardano price" -> {"action":"price_check","currency":"ADA","targetCurrency":"USD","confidence":0.9}
+        - "ADA price" -> {"action":"price_check","currency":"ADA","targetCurrency":"USD","confidence":0.9}
+        - "Polkadot price" -> {"action":"price_check","currency":"DOT","targetCurrency":"USD","confidence":0.9}
+        - "DOT price" -> {"action":"price_check","currency":"DOT","targetCurrency":"USD","confidence":0.9}
+        - "Chainlink price" -> {"action":"price_check","currency":"LINK","targetCurrency":"USD","confidence":0.9}
+        - "LINK price" -> {"action":"price_check","currency":"LINK","targetCurrency":"USD","confidence":0.9}
         - "Price of my SOLO tokens" -> {"action":"price_check","currency":"SOLO","isTokenPrice":true,"confidence":0.9}
         - "What's my token worth?" -> {"action":"price_check","isTokenPrice":true,"confidence":0.8}
         - "Show me crypto prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
         - "Market value of XRP" -> {"action":"price_check","currency":"XRP","confidence":0.9}
+        - "Crypto prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        - "Current crypto rates" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        - "Cryptocurrency prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        - "Token prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        - "Digital currency prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        
+        OTHER EXAMPLES:
         - "How to backup my wallet?" -> {"action":"backup_help","confidence":0.9}
+        - "Backup wallet" -> {"action":"backup_help","confidence":0.9}
+        - "Wallet backup" -> {"action":"backup_help","confidence":0.9}
+        - "Backup help" -> {"action":"backup_help","confidence":0.9}
+        - "How do I backup" -> {"action":"backup_help","confidence":0.9}
         - "What is XRP?" -> {"action":"xrp_info","confidence":0.9}
+        - "Tell me about XRP" -> {"action":"xrp_info","confidence":0.9}
+        - "XRP info" -> {"action":"xrp_info","confidence":0.9}
+        - "What's XRP" -> {"action":"xrp_info","confidence":0.9}
+        - "Explain XRP" -> {"action":"xrp_info","confidence":0.9}
         - "Tell me about my seed phrase" -> {"action":"seed_info","confidence":0.9}
+        - "Seed phrase info" -> {"action":"seed_info","confidence":0.9}
+        - "What is seed phrase" -> {"action":"seed_info","confidence":0.9}
+        - "Seed phrase help" -> {"action":"seed_info","confidence":0.9}
+        - "My seed phrase" -> {"action":"seed_info","confidence":0.9}
         
         For contact_add, extract:
         - contactName: The name to save

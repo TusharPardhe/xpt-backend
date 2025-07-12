@@ -64,70 +64,48 @@ const fetchCryptoPrices = async (req, res) => {
             });
         }
 
-        // Fetch price data from CoinGecko
-        let response = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${normalizedTarget.toLowerCase()}&include_24hr_change=true&include_last_updated_at=true`
+        // Always fetch price data in USD first for consistency and reliability
+        const response = await fetch(
+            `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`
         );
 
         if (!response.ok) {
             throw new Error('Failed to fetch cryptocurrency price');
         }
 
-        let data = await response.json();
-        let coinData = data[coinId];
+        const data = await response.json();
+        const coinData = data[coinId];
 
-        if (!coinData || !coinData[normalizedTarget.toLowerCase()]) {
-            // If target currency is not directly supported by CoinGecko, try USD conversion
-            console.log(`Direct ${normalizedTarget} not available, trying USD conversion...`);
-            
-            // Get price in USD first
-            const usdResponse = await fetch(
-                `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`
-            );
+        if (!coinData) {
+            throw new Error('No price data available');
+        }
 
-            if (!usdResponse.ok) {
-                throw new Error('Failed to fetch cryptocurrency price in USD');
-            }
+        const usdPrice = coinData.usd;
+        const change24h = coinData.usd_24h_change;
+        const lastUpdated = coinData.last_updated_at;
 
-            const usdData = await usdResponse.json();
-            const usdCoinData = usdData[coinId];
+        let finalPrice = usdPrice;
 
-            if (!usdCoinData) {
-                throw new Error('No USD price data available');
-            }
-
-            // Get USD to target currency conversion rate
+        // If target currency is not USD, convert using our conversion function
+        if (normalizedTarget !== 'USD') {
             const conversionRate = await getUSDConversionRate(normalizedTarget);
             
             if (!conversionRate) {
                 throw new Error(`Unable to convert USD to ${normalizedTarget}`);
             }
 
-            // Calculate converted price
-            const usdPrice = usdCoinData.usd;
-            const convertedPrice = usdPrice * conversionRate;
-
-            // Create converted coin data
-            coinData = {
-                [normalizedTarget.toLowerCase()]: convertedPrice,
-                [`${normalizedTarget.toLowerCase()}_24h_change`]: usdCoinData.usd_24h_change,
-                last_updated_at: usdCoinData.last_updated_at
-            };
+            finalPrice = usdPrice * conversionRate;
         }
-
-        const price = coinData[normalizedTarget.toLowerCase()];
-        const change24h = coinData[`${normalizedTarget.toLowerCase()}_24h_change`];
-        const lastUpdated = coinData.last_updated_at;
 
         res.json({
             success: true,
             data: {
                 currency: normalizedCurrency,
                 targetCurrency: normalizedTarget,
-                price: price,
+                price: finalPrice,
                 change24h: change24h ? parseFloat(change24h.toFixed(2)) : null,
                 lastUpdated: new Date(lastUpdated * 1000).toISOString(),
-                formattedPrice: `${price.toLocaleString()} ${normalizedTarget}`,
+                formattedPrice: `${finalPrice.toLocaleString()} ${normalizedTarget}`,
                 trend: change24h > 0 ? 'up' : change24h < 0 ? 'down' : 'neutral',
             },
         });
@@ -307,16 +285,16 @@ async function getUSDConversionRate(targetCurrency) {
     try {
         // Using free exchange rate API
         const response = await fetch(`https://api.exchangerate-api.com/v4/latest/USD`);
-        
+
         if (!response.ok) {
             console.log('Exchange rate API failed, trying fallback...');
             // Fallback to another free API
             const fallbackResponse = await fetch(`https://api.fxapi.com/v1/latest?base=USD&symbols=${targetCurrency.toUpperCase()}`);
-            
+
             if (!fallbackResponse.ok) {
                 return null;
             }
-            
+
             const fallbackData = await fallbackResponse.json();
             return fallbackData.rates?.[targetCurrency.toUpperCase()];
         }
@@ -360,7 +338,7 @@ module.exports = {
             REN: 'republic-protocol',
             KNC: 'kyber-network-crystal',
             ZRX: '0x',
-            BNT: 'bancor'
+            BNT: 'bancor',
         };
 
         const coinId = cryptoMap[normalizedCurrency];
@@ -368,71 +346,49 @@ module.exports = {
             throw new Error(`Unsupported cryptocurrency: ${normalizedCurrency}`);
         }
 
-        // Fetch price data from CoinGecko
-        let response = await fetch(
-            `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${normalizedTarget.toLowerCase()}&include_24hr_change=true&include_last_updated_at=true`
+        // Always fetch price data in USD first for consistency
+        const response = await fetch(
+            `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`
         );
 
         if (!response.ok) {
             throw new Error('Failed to fetch cryptocurrency price');
         }
 
-        let data = await response.json();
-        let coinData = data[coinId];
+        const data = await response.json();
+        const coinData = data[coinId];
 
-        if (!coinData || !coinData[normalizedTarget.toLowerCase()]) {
-            // If target currency is not directly supported by CoinGecko, try USD conversion
-            console.log(`Direct ${normalizedTarget} not available, trying USD conversion...`);
-            
-            // Get price in USD first
-            const usdResponse = await fetch(
-                `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true&include_last_updated_at=true`
-            );
+        if (!coinData) {
+            throw new Error('No price data available');
+        }
 
-            if (!usdResponse.ok) {
-                throw new Error('Failed to fetch cryptocurrency price in USD');
-            }
+        const usdPrice = coinData.usd;
+        const change24h = coinData.usd_24h_change;
+        const lastUpdated = coinData.last_updated_at;
 
-            const usdData = await usdResponse.json();
-            const usdCoinData = usdData[coinId];
+        let finalPrice = usdPrice;
 
-            if (!usdCoinData) {
-                throw new Error('No USD price data available');
-            }
-
-            // Get USD to target currency conversion rate
+        // If target currency is not USD, convert using our conversion function
+        if (normalizedTarget !== 'USD') {
             const conversionRate = await getUSDConversionRate(normalizedTarget);
             
             if (!conversionRate) {
                 throw new Error(`Unable to convert USD to ${normalizedTarget}`);
             }
 
-            // Calculate converted price
-            const usdPrice = usdCoinData.usd;
-            const convertedPrice = usdPrice * conversionRate;
-
-            // Create converted coin data
-            coinData = {
-                [normalizedTarget.toLowerCase()]: convertedPrice,
-                [`${normalizedTarget.toLowerCase()}_24h_change`]: usdCoinData.usd_24h_change,
-                last_updated_at: usdCoinData.last_updated_at
-            };
+            finalPrice = usdPrice * conversionRate;
         }
-
-        const price = coinData[normalizedTarget.toLowerCase()];
-        const change24h = coinData[`${normalizedTarget.toLowerCase()}_24h_change`];
-        const lastUpdated = coinData.last_updated_at;
 
         return {
             success: true,
             data: {
                 currency: normalizedCurrency,
                 targetCurrency: normalizedTarget,
-                price: price,
+                price: finalPrice,
                 change24h: change24h ? parseFloat(change24h.toFixed(2)) : null,
                 lastUpdated: new Date(lastUpdated * 1000).toISOString(),
-                formattedPrice: `${price.toLocaleString()} ${normalizedTarget}`,
-            }
+                formattedPrice: `${finalPrice.toLocaleString()} ${normalizedTarget}`,
+            },
         };
-    }
+    },
 };

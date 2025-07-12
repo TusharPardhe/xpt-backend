@@ -138,6 +138,11 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "Open accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
         - "What's the current XRP price?" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
         - "XRP price in EUR" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
+        - "XRP price in INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
+        - "Current XRP price in INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
+        - "What is current XRP price in INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
+        - "XRP to INR" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
+        - "Price of XRP in Indian rupees" -> {"action":"price_check","currency":"XRP","targetCurrency":"INR","confidence":0.9}
         - "Bitcoin price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
         - "How much is Ethereum worth?" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
         - "Price of my SOLO tokens" -> {"action":"price_check","currency":"SOLO","isTokenPrice":true,"confidence":0.9}

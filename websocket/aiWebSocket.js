@@ -32,22 +32,39 @@ const setupAIWebSocket = (io) => {
                         maxDailyRequests: userRequestCount.maxDailyRequests,
                         remainingRequests: 0,
                         resetTime: new Date(new Date().setHours(24, 0, 0, 0)),
+                        userRequestCount: null,
                     };
                 }
-
-                await userRequestCount.incrementRequestCount();
 
                 return {
                     allowed: true,
                     remainingRequests: userRequestCount.getRemainingRequests(),
                     maxDailyRequests: userRequestCount.maxDailyRequests,
                     dailyRequests: userRequestCount.dailyRequests,
+                    userRequestCount: userRequestCount,
                 };
             } catch (error) {
                 console.error('Rate limiting error:', error);
                 // Allow request if rate limiting fails
-                return { allowed: true, remainingRequests: 50, maxDailyRequests: 50, dailyRequests: 0 };
+                return { allowed: true, remainingRequests: 50, maxDailyRequests: 50, dailyRequests: 0, userRequestCount: null };
             }
+        };
+
+        const incrementRequestCount = async (userRequestCount) => {
+            if (userRequestCount) {
+                try {
+                    await userRequestCount.incrementRequestCount();
+                    return {
+                        remainingRequests: userRequestCount.getRemainingRequests(),
+                        maxDailyRequests: userRequestCount.maxDailyRequests,
+                        dailyRequests: userRequestCount.dailyRequests,
+                    };
+                } catch (error) {
+                    console.error('Error incrementing request count:', error);
+                    return null;
+                }
+            }
+            return null;
         };
 
         socket.on('ai:message', async (data, callback) => {
@@ -81,10 +98,18 @@ const setupAIWebSocket = (io) => {
                 }
 
                 const textResponse = await processAIRequest(prompt);
-                const response = {
-                    message: textResponse,
+
+                // Only increment request count on successful AI response
+                const incrementResult = await incrementRequestCount(rateLimitResult.userRequestCount);
+                const finalRateLimitData = incrementResult || {
                     remainingRequests: rateLimitResult.remainingRequests,
                     maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
+
+                const response = {
+                    message: textResponse,
+                    remainingRequests: finalRateLimitData.remainingRequests,
+                    maxDailyRequests: finalRateLimitData.maxDailyRequests,
                 };
 
                 if (callback) {
@@ -135,10 +160,18 @@ const setupAIWebSocket = (io) => {
                 }
 
                 const parsedCommand = await parseWalletCommand(message, contacts || []);
-                const response = {
-                    parsedCommand,
+
+                // Only increment request count on successful parsing
+                const incrementResult = await incrementRequestCount(rateLimitResult.userRequestCount);
+                const finalRateLimitData = incrementResult || {
                     remainingRequests: rateLimitResult.remainingRequests,
                     maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
+
+                const response = {
+                    parsedCommand,
+                    remainingRequests: finalRateLimitData.remainingRequests,
+                    maxDailyRequests: finalRateLimitData.maxDailyRequests,
                 };
 
                 if (callback) {
@@ -247,6 +280,13 @@ const setupAIWebSocket = (io) => {
                 const change24h = coinData[`${normalizedTarget.toLowerCase()}_24h_change`];
                 const lastUpdated = coinData.last_updated_at;
 
+                // Only increment request count on successful price fetch
+                const incrementResult = await incrementRequestCount(rateLimitResult.userRequestCount);
+                const finalRateLimitData = incrementResult || {
+                    remainingRequests: rateLimitResult.remainingRequests,
+                    maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
+
                 const responseData = {
                     success: true,
                     data: {
@@ -258,8 +298,8 @@ const setupAIWebSocket = (io) => {
                         formattedPrice: `${price.toLocaleString()} ${normalizedTarget}`,
                         trend: change24h > 0 ? 'up' : change24h < 0 ? 'down' : 'neutral',
                     },
-                    remainingRequests: rateLimitResult.remainingRequests,
-                    maxDailyRequests: rateLimitResult.maxDailyRequests,
+                    remainingRequests: finalRateLimitData.remainingRequests,
+                    maxDailyRequests: finalRateLimitData.maxDailyRequests,
                 };
 
                 if (callback) {

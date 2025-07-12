@@ -13,6 +13,8 @@ const airdrop = require('./routes/airdrop');
 const user = require('./routes/user');
 const xrplData = require('./routes/xrplData');
 const webAuth = require('./routes/webAuth');
+const ai = require('./routes/ai');
+const prices = require('./routes/prices');
 
 // Setup Socket.io
 const httpServer = createServer(app);
@@ -73,6 +75,8 @@ app.use('/airdrop', airdrop);
 app.use('/user', user);
 app.use('/xrpl', xrplData);
 app.use('/webauth', webAuth);
+app.use('/ai', ai);
+app.use('/prices', prices);
 
 // Port
 const PORT = process.env.PORT || 3000;

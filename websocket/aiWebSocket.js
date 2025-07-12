@@ -1,4 +1,5 @@
 const { processAIRequest, parseWalletCommand } = require('./utils/aiUtils');
+const UserRequestCount = require('../models/UserRequestCount');
 
 const setupAIWebSocket = (io) => {
     io.on('connection', (socket) => {
@@ -10,9 +11,48 @@ const setupAIWebSocket = (io) => {
             timestamp: new Date().toISOString(),
         });
 
+        // Helper function to check and update rate limit
+        const checkRateLimit = async (address) => {
+            if (!address) {
+                return { allowed: false, error: 'Wallet address is required for rate limiting' };
+            }
+
+            try {
+                let userRequestCount = await UserRequestCount.findOne({ address });
+
+                if (!userRequestCount) {
+                    userRequestCount = new UserRequestCount({ address });
+                    await userRequestCount.save();
+                }
+
+                if (userRequestCount.hasExceededLimit()) {
+                    return {
+                        allowed: false,
+                        error: 'Daily request limit exceeded',
+                        maxDailyRequests: userRequestCount.maxDailyRequests,
+                        remainingRequests: 0,
+                        resetTime: new Date(new Date().setHours(24, 0, 0, 0)),
+                    };
+                }
+
+                await userRequestCount.incrementRequestCount();
+
+                return {
+                    allowed: true,
+                    remainingRequests: userRequestCount.getRemainingRequests(),
+                    maxDailyRequests: userRequestCount.maxDailyRequests,
+                    dailyRequests: userRequestCount.dailyRequests,
+                };
+            } catch (error) {
+                console.error('Rate limiting error:', error);
+                // Allow request if rate limiting fails
+                return { allowed: true, remainingRequests: 50, maxDailyRequests: 50, dailyRequests: 0 };
+            }
+        };
+
         socket.on('ai:message', async (data, callback) => {
             try {
-                const { prompt } = data;
+                const { prompt, address } = data;
 
                 if (!prompt) {
                     const errorResponse = { error: 'Invalid request: missing prompt' };
@@ -24,8 +64,28 @@ const setupAIWebSocket = (io) => {
                     return;
                 }
 
+                // Check rate limit
+                const rateLimitResult = await checkRateLimit(address);
+                if (!rateLimitResult.allowed) {
+                    const errorResponse = {
+                        error: rateLimitResult.error,
+                        rateLimitExceeded: true,
+                        ...rateLimitResult,
+                    };
+                    if (callback) {
+                        callback(errorResponse);
+                    } else {
+                        socket.emit('ai:message:response', errorResponse);
+                    }
+                    return;
+                }
+
                 const textResponse = await processAIRequest(prompt);
-                const response = { message: textResponse };
+                const response = {
+                    message: textResponse,
+                    remainingRequests: rateLimitResult.remainingRequests,
+                    maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
 
                 if (callback) {
                     callback(response);
@@ -46,13 +106,25 @@ const setupAIWebSocket = (io) => {
 
         socket.on('ai:parseCommand', async (data, callback) => {
             try {
-                const { message, contacts } = data;
+                const { message, contacts, address } = data;
 
                 if (!message) {
+                    const errorResponse = { error: 'Invalid request: missing message' };
+                    if (callback) {
+                        callback(errorResponse);
+                    } else {
+                        socket.emit('ai:parseCommand:response', errorResponse);
+                    }
+                    return;
+                }
+
+                // Check rate limit
+                const rateLimitResult = await checkRateLimit(address);
+                if (!rateLimitResult.allowed) {
                     const errorResponse = {
-                        error: 'Invalid request: missing message',
-                        action: 'unknown',
-                        confidence: 0.5,
+                        error: rateLimitResult.error,
+                        rateLimitExceeded: true,
+                        ...rateLimitResult,
                     };
                     if (callback) {
                         callback(errorResponse);
@@ -62,25 +134,150 @@ const setupAIWebSocket = (io) => {
                     return;
                 }
 
-                const parsedCommand = await parseWalletCommand(message, contacts);
+                const parsedCommand = await parseWalletCommand(message, contacts || []);
+                const response = {
+                    parsedCommand,
+                    remainingRequests: rateLimitResult.remainingRequests,
+                    maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
 
                 if (callback) {
-                    callback(parsedCommand);
+                    callback(response);
                 } else {
-                    socket.emit('ai:parseCommand:response', parsedCommand);
+                    socket.emit('ai:parseCommand:response', response);
                 }
             } catch (error) {
-                console.error('Error processing command parsing:', error);
-                const errorResponse = {
-                    error: 'Error processing AI request',
-                    action: 'unknown',
-                    confidence: 0.5,
-                };
+                console.error('Error parsing command:', error);
+                const errorResponse = { error: 'Error parsing command' };
 
                 if (callback) {
                     callback(errorResponse);
                 } else {
                     socket.emit('ai:parseCommand:response', errorResponse);
+                }
+            }
+        });
+
+        // Handle price checking requests
+        socket.on('ai:price', async (data, callback) => {
+            try {
+                const { currency = 'XRP', targetCurrency = 'USD', address } = data;
+
+                if (!currency) {
+                    const errorResponse = { error: 'Invalid request: missing currency' };
+                    if (callback) {
+                        callback(errorResponse);
+                    } else {
+                        socket.emit('ai:price:response', errorResponse);
+                    }
+                    return;
+                }
+
+                // Check rate limit
+                const rateLimitResult = await checkRateLimit(address);
+                if (!rateLimitResult.allowed) {
+                    const errorResponse = {
+                        error: rateLimitResult.error,
+                        rateLimitExceeded: true,
+                        ...rateLimitResult,
+                    };
+                    if (callback) {
+                        callback(errorResponse);
+                    } else {
+                        socket.emit('ai:price:response', errorResponse);
+                    }
+                    return;
+                }
+
+                // For now, let's handle XRP and major cryptos through the internal API
+                const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
+                const cryptoMap = {
+                    XRP: 'ripple',
+                    BTC: 'bitcoin',
+                    ETH: 'ethereum',
+                    ADA: 'cardano',
+                    DOT: 'polkadot',
+                    LINK: 'chainlink',
+                    LTC: 'litecoin',
+                    BCH: 'bitcoin-cash',
+                    XLM: 'stellar',
+                    DOGE: 'dogecoin',
+                    UNI: 'uniswap',
+                    AAVE: 'aave',
+                    SOL: 'solana',
+                    MATIC: 'matic-network',
+                    AVAX: 'avalanche-2',
+                };
+
+                const normalizedCurrency = currency.toUpperCase();
+                const normalizedTarget = targetCurrency.toUpperCase();
+                const coinId = cryptoMap[normalizedCurrency];
+
+                if (!coinId) {
+                    const errorResponse = {
+                        error: `Unsupported cryptocurrency: ${normalizedCurrency}`,
+                        supportedCurrencies: Object.keys(cryptoMap),
+                    };
+                    if (callback) {
+                        callback(errorResponse);
+                    } else {
+                        socket.emit('ai:price:response', errorResponse);
+                    }
+                    return;
+                }
+
+                // Fetch price data from CoinGecko
+                const response = await fetch(
+                    `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=${normalizedTarget.toLowerCase()}&include_24hr_change=true&include_last_updated_at=true`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch cryptocurrency price');
+                }
+
+                const priceData = await response.json();
+                const coinData = priceData[coinId];
+
+                if (!coinData) {
+                    throw new Error('No price data available');
+                }
+
+                const price = coinData[normalizedTarget.toLowerCase()];
+                const change24h = coinData[`${normalizedTarget.toLowerCase()}_24h_change`];
+                const lastUpdated = coinData.last_updated_at;
+
+                const responseData = {
+                    success: true,
+                    data: {
+                        currency: normalizedCurrency,
+                        targetCurrency: normalizedTarget,
+                        price: price,
+                        change24h: change24h ? parseFloat(change24h.toFixed(2)) : null,
+                        lastUpdated: new Date(lastUpdated * 1000).toISOString(),
+                        formattedPrice: `${price.toLocaleString()} ${normalizedTarget}`,
+                        trend: change24h > 0 ? 'up' : change24h < 0 ? 'down' : 'neutral',
+                    },
+                    remainingRequests: rateLimitResult.remainingRequests,
+                    maxDailyRequests: rateLimitResult.maxDailyRequests,
+                };
+
+                if (callback) {
+                    callback(responseData);
+                } else {
+                    socket.emit('ai:price:response', responseData);
+                }
+            } catch (error) {
+                console.error('Error fetching price:', error);
+                const errorResponse = {
+                    error: 'Failed to fetch cryptocurrency price',
+                    details: error.message,
+                };
+
+                if (callback) {
+                    callback(errorResponse);
+                } else {
+                    socket.emit('ai:price:response', errorResponse);
                 }
             }
         });

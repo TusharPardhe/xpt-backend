@@ -90,6 +90,7 @@ const parseWalletCommand = async (message, contacts = []) => {
         - seed_info: When user asks about their seed phrase
         - wallet_navigation: When user wants to navigate to another section of the wallet
         - direct_navigation: When user explicitly wants to navigate somewhere (e.g., "go to transactions", "navigate to settings", "take me to contacts")
+        - price_check: When user asks about cryptocurrency prices, token prices, or market values
         - unknown: When the intent doesn't match any of the above
         
         For payment actions, extract:
@@ -100,6 +101,11 @@ const parseWalletCommand = async (message, contacts = []) => {
         For direct_navigation actions, extract:
         - destination: The target page (transactions, contacts, settings, accounts, send, escrows, web-connections, home, ai-assistant)
         
+        For price_check actions, extract:
+        - currency: The cryptocurrency or token symbol/name (e.g., "XRP", "BTC", "ETH", "USD", "EUR", or token name)
+        - targetCurrency: The target currency for conversion (default to "USD" if not specified)
+        - isTokenPrice: Set to true if asking about a specific token they hold, false for major cryptocurrencies
+        
         CRITICAL: For payments, ALWAYS extract the recipient as mentioned, regardless of whether it looks like a contact name or address. The frontend will handle contact resolution.
         
         Examples:
@@ -107,11 +113,40 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "Send 10 XRP to John" -> {"action":"payment","recipient":"John","amount":"10","currency":"XRP","confidence":0.9}
         - "Transfer 5 to rXXXXX" -> {"action":"payment","recipient":"rXXXXX","amount":"5","currency":"XRP","confidence":0.9}
         - "Pay Alice 20" -> {"action":"payment","recipient":"Alice","amount":"20","currency":"XRP","confidence":0.9}
+        - "Send money to Bob" -> {"action":"payment","recipient":"Bob","confidence":0.8}
+        - "I want to pay someone" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "What's my balance?" -> {"action":"check_balance","confidence":0.9}
+        - "Check my wallet balance" -> {"action":"check_balance","confidence":0.9}
+        - "How much XRP do I have?" -> {"action":"check_balance","confidence":0.9}
+        - "Show my address" -> {"action":"get_address","confidence":0.9}
+        - "What's my wallet address?" -> {"action":"get_address","confidence":0.9}
+        - "Find contact John" -> {"action":"contact_search","contactName":"John","confidence":0.9}
+        - "Search for Alice in contacts" -> {"action":"contact_search","contactName":"Alice","confidence":0.9}
+        - "Show my transactions" -> {"action":"transaction_history","confidence":0.9}
+        - "Transaction history" -> {"action":"transaction_history","confidence":0.9}
+        - "My recent payments" -> {"action":"transaction_history","confidence":0.9}
         - "Navigate to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
         - "Go to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
         - "Take me to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Go to home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Take me to home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
         - "Show escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Navigate to escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Open settings page" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Send money" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Take me to send page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
         - "Open accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "What's the current XRP price?" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}
+        - "XRP price in EUR" -> {"action":"price_check","currency":"XRP","targetCurrency":"EUR","confidence":0.9}
+        - "Bitcoin price" -> {"action":"price_check","currency":"BTC","targetCurrency":"USD","confidence":0.9}
+        - "How much is Ethereum worth?" -> {"action":"price_check","currency":"ETH","targetCurrency":"USD","confidence":0.9}
+        - "Price of my SOLO tokens" -> {"action":"price_check","currency":"SOLO","isTokenPrice":true,"confidence":0.9}
+        - "What's my token worth?" -> {"action":"price_check","isTokenPrice":true,"confidence":0.8}
+        - "Show me crypto prices" -> {"action":"price_check","currency":"XRP","confidence":0.8}
+        - "Market value of XRP" -> {"action":"price_check","currency":"XRP","confidence":0.9}
+        - "How to backup my wallet?" -> {"action":"backup_help","confidence":0.9}
+        - "What is XRP?" -> {"action":"xrp_info","confidence":0.9}
+        - "Tell me about my seed phrase" -> {"action":"seed_info","confidence":0.9}
         
         For contact_add, extract:
         - contactName: The name to save
@@ -120,6 +155,8 @@ const parseWalletCommand = async (message, contacts = []) => {
         For all actions, include a confidence score between 0 and 1.
         Set confidence to 0.9+ for clear payment intents with amount and recipient.
         Set confidence to 0.9+ for clear navigation intents.
+        Set confidence to 0.9+ for clear price check requests with specific currency.
+        Set confidence to 0.8+ for general price requests without specific currency.
         
         Message to parse: "${message}"
         

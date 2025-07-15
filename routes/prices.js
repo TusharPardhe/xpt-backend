@@ -1,5 +1,6 @@
 const express = require('express');
 const { fetchCryptoPrices, fetchTokenPrice, fetchMultiplePrices } = require('../controllers/fetch/fetchCryptoPrices');
+const { fetchXRPLTokens } = require('../controllers/fetch/fetchXRPLTokens');
 
 const router = express.Router();
 
@@ -11,5 +12,8 @@ router.get('/token', fetchTokenPrice);
 
 // GET /api/prices/multiple - Get multiple cryptocurrency prices
 router.get('/multiple', fetchMultiplePrices);
+
+// GET /api/prices/xrpl-tokens - Get XRPL tokens for trustline
+router.get('/xrpl-tokens', fetchXRPLTokens);
 
 module.exports = router;

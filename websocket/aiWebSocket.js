@@ -1,5 +1,4 @@
 const { processAIRequest, parseWalletCommand } = require('./utils/aiUtils');
-const { emitTypingAnimation } = require('./utils/typingAnimation');
 const UserRequestCount = require('../models/UserRequestCount');
 
 // Function to get USD to target currency conversion rate
@@ -141,28 +140,10 @@ const setupAIWebSocket = (io) => {
                     maxDailyRequests: finalRateLimitData.maxDailyRequests,
                 };
 
-                // Use typing animation for response
-                if (textResponse && textResponse.length > 20) {
-                    // For longer responses, use typing animation
-                    await emitTypingAnimation(socket, textResponse, 'ai:message', {
-                        typingSpeed: 40,
-                        naturalVariation: true,
-                        pauseOnPunctuation: 150
-                    });
-                    
-                    // Send final response with metadata
-                    if (callback) {
-                        callback(response);
-                    } else {
-                        socket.emit('ai:message:response', response);
-                    }
+                if (callback) {
+                    callback(response);
                 } else {
-                    // For short responses, send immediately
-                    if (callback) {
-                        callback(response);
-                    } else {
-                        socket.emit('ai:message:response', response);
-                    }
+                    socket.emit('ai:message:response', response);
                 }
             } catch (error) {
                 console.error('Error processing AI message:', error);
@@ -332,7 +313,7 @@ const setupAIWebSocket = (io) => {
                 // If target currency is not USD, convert using our conversion function
                 if (normalizedTarget !== 'USD') {
                     const conversionRate = await getUSDConversionRate(normalizedTarget);
-                    
+
                     if (!conversionRate) {
                         throw new Error(`Unable to convert USD to ${normalizedTarget}`);
                     }

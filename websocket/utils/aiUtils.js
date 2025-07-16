@@ -1,5 +1,4 @@
 const axios = require('axios');
-const { TypingAnimator } = require('./typingAnimation');
 
 const processAIRequest = async (prompt) => {
     if (!prompt) {
@@ -580,5 +579,4 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
 module.exports = {
     processAIRequest,
     parseWalletCommand,
-    TypingAnimator,
 };

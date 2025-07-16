@@ -12,6 +12,44 @@ const processAIRequest = async (prompt) => {
 
     const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
+    //  Prompt with comprehensive professional instructions
+    const professionalPrompt = `You are a professional cryptocurrency and blockchain wallet assistant for a financial application. 
+        RESPONSE STYLE REQUIREMENTS:
+        - Use formal, business-appropriate language at all times
+        - NEVER use emojis, emoticons, or casual expressions
+        - Maintain a professional, courteous, and informative tone
+        - Use proper grammar and complete sentences
+        - Be precise and technical when discussing cryptocurrency concepts
+        - Provide clear, actionable information
+        - Keep responses concise and focused
+        - Use industry-standard terminology correctly
+
+        FORBIDDEN ELEMENTS:
+        - No emojis or emoticons (😊, 🚀, 💰, etc.)
+        - No casual greetings (hey, hi there, yo, sup)
+        - No exclamation overuse (avoid multiple !!! or ???)
+        - No informal expressions (awesome, cool, wow, amazing, sweet, lol, etc.)
+        - No text speak or abbreviations (btw, fyi, tbh, omg, etc.)
+        - No overly enthusiastic language
+
+        PREFERRED LANGUAGE PATTERNS:
+        - "I recommend..." instead of "You should totally..."
+        - "Please consider..." instead of "You might want to..."
+        - "This functionality allows..." instead of "This is super cool because..."
+        - "The current market value..." instead of "The price is..."
+        - "Your transaction will..." instead of "Your tx will..."
+
+        CONTENT GUIDELINES:
+        - Provide accurate cryptocurrency and blockchain information
+        - Explain wallet functions clearly and professionally
+        - Offer step-by-step guidance when appropriate
+        - Include relevant security considerations
+        - Maintain user privacy and data protection awareness
+
+        User query: ${prompt}
+
+        Please provide a professional response following these guidelines:`;
+
     const apiResponse = await axios.post(
         `${GEMINI_API_ENDPOINT}?key=${apiKey}`,
         {
@@ -19,15 +57,15 @@ const processAIRequest = async (prompt) => {
                 {
                     parts: [
                         {
-                            text: prompt,
+                            text: professionalPrompt,
                         },
                     ],
                 },
             ],
             generationConfig: {
-                temperature: 0.7,
-                topK: 40,
-                topP: 0.9,
+                temperature: 0.3,
+                topK: 20,
+                topP: 0.7,
                 maxOutputTokens: 300,
             },
             safetySettings: [
@@ -63,7 +101,7 @@ const processAIRequest = async (prompt) => {
     }
 };
 
-const parseWalletCommand = async (message, contacts = []) => {
+const parseWalletCommand = async (message, contacts = [], context = {}) => {
     if (!message) {
         throw new Error('Missing message');
     }
@@ -75,23 +113,63 @@ const parseWalletCommand = async (message, contacts = []) => {
 
     const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
+    // Build context-aware prompt
+    let contextInfo = '';
+    if (context.previousCommands && context.previousCommands.length > 0) {
+        contextInfo += `\nRecent conversation context:\n`;
+        context.previousCommands.slice(-3).forEach((cmd, index) => {
+            contextInfo += `${index + 1}. User did: ${cmd.action} ${cmd.recipient || cmd.destination || ''}\n`;
+        });
+    }
+
+    if (context.mentionedEntities && context.mentionedEntities.length > 0) {
+        contextInfo += `\nPreviously mentioned: ${context.mentionedEntities.slice(-5).join(', ')}\n`;
+    }
+
     const prompt = `
-        Parse the following message into a wallet command structure. Focus ONLY on extracting intent and entities, do NOT try to validate if contacts exist.
+        Parse the following message into a wallet command structure with enhanced natural language understanding.
+        Focus ONLY on extracting intent and entities, do NOT try to validate if contacts exist.
+        
+        ${contextInfo}
         
         Valid actions:
         - payment: When the user wants to send/pay/transfer XRP or other currency to someone
-        - check_balance: When user asks about their balance
-        - get_address: When user asks for their wallet address
-        - contact_search: When user wants to find a contact
-        - contact_add: When user wants to add a new contact
-        - transaction_history: When user wants to see transaction history
-        - backup_help: When user asks about backing up their wallet
-        - xrp_info: When user asks about what XRP is
-        - seed_info: When user asks about their seed phrase
+        - check_balance: When user asks about their balance, money, funds, wallet amount
+        - get_address: When user asks for their wallet address, receive address, account ID
+        - contact_search: When user wants to find a contact, friend, person in address book
+        - contact_add: When user wants to add a new contact, save an address
+        - transaction_history: When user wants to see transaction history, payments, transfers, activity
+        - backup_help: When user asks about backing up their wallet, security, seed phrase backup
+        - xrp_info: When user asks about what XRP is, cryptocurrency information
+        - seed_info: When user asks about their seed phrase, recovery phrase, wallet backup
         - wallet_navigation: When user wants to navigate to another section of the wallet
         - direct_navigation: When user explicitly wants to navigate somewhere (e.g., "go to transactions", "navigate to settings", "take me to contacts")
-        - price_check: When user asks about cryptocurrency prices, token prices, or market values
+        - price_check: When user asks about cryptocurrency prices, token prices, market values, exchange rates
         - unknown: When the intent doesn't match any of the above
+        
+        ENHANCED SYNONYM RECOGNITION:
+        - Balance: money, funds, cash, wallet amount, how much, available, balance
+        - Send/Payment: pay, transfer, give, wire, remit, transmit, send money
+        - Transaction: payment, transfer, activity, movement, record, history
+        - Address: wallet ID, account number, receive address, my ID, wallet address
+        - Contact: friend, person, saved address, address book entry, people
+        - Show/Display: view, see, get, fetch, retrieve, display, show me
+        - Check: look at, examine, verify, confirm, tell me
+        
+        CONTEXT-AWARE PARSING:
+        - If user says "him", "her", "them" and there's a recent contact mention, use that contact
+        - If user says "that", "it" and refers to previous action, infer the intent
+        - If user says "more", "details", "full" after transaction history, suggest navigation
+        - Handle casual language like "how much do I have", "where's my money", "send some XRP"
+        
+        NAVIGATION SHORTCUTS:
+        - Home: dashboard, main page, start, home screen
+        - Settings: preferences, config, options, account settings
+        - Accounts: wallets, my wallets, wallet list, account list
+        - Transactions: history, payments, activity, transaction log
+        - Contacts: address book, friends, people, saved addresses
+        - Send: pay, transfer, payment, send money
+        - Portfolio: assets, tokens, holdings, my tokens
         
         For payment actions, extract:
         - recipient: Extract the name/identifier exactly as mentioned (could be contact name, address, or any identifier)
@@ -160,21 +238,131 @@ const parseWalletCommand = async (message, contacts = []) => {
         - "My payments" -> {"action":"transaction_history","confidence":0.9}
         - "Show my payment history" -> {"action":"transaction_history","confidence":0.9}
         
-        NAVIGATION EXAMPLES:
-        - "Navigate to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        NAVIGATION EXAMPLES (COMPREHENSIVE):
+        
+        HOME NAVIGATION:
+        - "Go home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Take me home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Navigate to home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Main dashboard" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Dashboard" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Start page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Main page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Go to main" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        
+        SETTINGS NAVIGATION:
         - "Go to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
-        - "Take me to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
-        - "Go to home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
-        - "Take me to home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
-        - "Show escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
-        - "Navigate to escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
-        - "Open settings page" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
-        - "Send money" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
-        - "Take me to send page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
-        - "Open accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Open settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Settings page" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "App settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Preferences" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Configuration" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Options" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Account settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Show settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        
+        ACCOUNTS/WALLETS NAVIGATION:
         - "Go to accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
-        - "Show me contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
-        - "Open contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Show my accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "My wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Wallet list" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Account list" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "View accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Open accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Show wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        
+        TRANSACTIONS NAVIGATION:
+        - "Go to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Navigate to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Transaction page" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Payment history" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Transaction log" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Activity page" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Show all transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Full transaction history" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        - "Payment log" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
+        
+        CONTACTS NAVIGATION:
+        - "Go to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Take me to contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Show contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Address book" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Contact list" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "My contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Friends list" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "People" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        - "Saved addresses" -> {"action":"direct_navigation","destination":"contacts","confidence":0.9}
+        
+        SEND/PAYMENT NAVIGATION:
+        - "Go to send" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Send page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Payment page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Send money" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Make payment" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Transfer funds" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Send XRP" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Pay someone" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        - "Transfer page" -> {"action":"direct_navigation","destination":"send","confidence":0.9}
+        
+        PORTFOLIO NAVIGATION:
+        - "Go to portfolio" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "Portfolio page" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "My assets" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "Token list" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "Holdings" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "My tokens" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "Asset overview" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        - "Show portfolio" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.9}
+        
+        ESCROWS NAVIGATION:
+        - "Go to escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Show escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Escrow page" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Conditional payments" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "Escrow list" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        - "My escrows" -> {"action":"direct_navigation","destination":"escrows","confidence":0.9}
+        
+        WEB CONNECTIONS NAVIGATION:
+        - "Web connections" -> {"action":"direct_navigation","destination":"web-connections","confidence":0.9}
+        - "Connected apps" -> {"action":"direct_navigation","destination":"web-connections","confidence":0.9}
+        - "Linked apps" -> {"action":"direct_navigation","destination":"web-connections","confidence":0.9}
+        - "App connections" -> {"action":"direct_navigation","destination":"web-connections","confidence":0.9}
+        - "Connected services" -> {"action":"direct_navigation","destination":"web-connections","confidence":0.9}
+        
+        NETWORK SETTINGS NAVIGATION:
+        - "Network settings" -> {"action":"direct_navigation","destination":"network-settings","confidence":0.9}
+        - "Server settings" -> {"action":"direct_navigation","destination":"network-settings","confidence":0.9}
+        - "Node settings" -> {"action":"direct_navigation","destination":"network-settings","confidence":0.9}
+        - "Network config" -> {"action":"direct_navigation","destination":"network-settings","confidence":0.9}
+        
+        CREATE ESCROW NAVIGATION:
+        - "Create escrow" -> {"action":"direct_navigation","destination":"create-escrow","confidence":0.9}
+        - "New escrow" -> {"action":"direct_navigation","destination":"create-escrow","confidence":0.9}
+        - "Add escrow" -> {"action":"direct_navigation","destination":"create-escrow","confidence":0.9}
+        - "Make escrow" -> {"action":"direct_navigation","destination":"create-escrow","confidence":0.9}
+        
+        AI ASSISTANT NAVIGATION:
+        - "AI assistant" -> {"action":"direct_navigation","destination":"ai-assistant","confidence":0.9}
+        - "Assistant" -> {"action":"direct_navigation","destination":"ai-assistant","confidence":0.9}
+        - "Chat" -> {"action":"direct_navigation","destination":"ai-assistant","confidence":0.9}
+        - "Help" -> {"action":"direct_navigation","destination":"ai-assistant","confidence":0.9}
+        
+        CASUAL NAVIGATION PATTERNS:
+        - "Take me to the main screen" -> {"action":"direct_navigation","destination":"home","confidence":0.8}
+        - "I want to go home" -> {"action":"direct_navigation","destination":"home","confidence":0.8}
+        - "Show me the settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.8}
+        - "Let me see my wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.8}
+        - "I need to send money" -> {"action":"direct_navigation","destination":"send","confidence":0.8}
+        - "Where are my contacts" -> {"action":"direct_navigation","destination":"contacts","confidence":0.8}
+        - "Show me my transaction history" -> {"action":"direct_navigation","destination":"transactions","confidence":0.8}
+        - "I want to check my portfolio" -> {"action":"direct_navigation","destination":"portfolio","confidence":0.8}
+        
+        COMPOUND NAVIGATION (ADVANCED):
+        - "Go to settings and show security" -> {"action":"direct_navigation","destination":"settings","parameters":{"section":"security"},"confidence":0.8}
+        - "Take me to accounts and add wallet" -> {"action":"direct_navigation","destination":"accounts","parameters":{"action":"add"},"confidence":0.8}
+        - "Open contacts and add new contact" -> {"action":"direct_navigation","destination":"contacts","parameters":{"action":"add"},"confidence":0.8}
         
         PRICE CHECK EXAMPLES (EXTENSIVE):
         - "What's the current XRP price?" -> {"action":"price_check","currency":"XRP","targetCurrency":"USD","confidence":0.9}

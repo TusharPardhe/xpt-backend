@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { TypingAnimator } = require('./typingAnimation');
 
 const processAIRequest = async (prompt) => {
     if (!prompt) {
@@ -250,6 +251,16 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
         - "Start page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
         - "Main page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
         - "Go to main" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Take me to home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Go to home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Navigate to home page" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Show me home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Open home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Back to home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Return to home" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Go to dashboard" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Show dashboard" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
+        - "Open dashboard" -> {"action":"direct_navigation","destination":"home","confidence":0.9}
         
         SETTINGS NAVIGATION:
         - "Go to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
@@ -261,6 +272,16 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
         - "Options" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
         - "Account settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
         - "Show settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Navigate to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Take me to settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Settings menu" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Go to preferences" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Show preferences" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Open preferences" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Application settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "Wallet settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "User settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
+        - "System settings" -> {"action":"direct_navigation","destination":"settings","confidence":0.9}
         
         ACCOUNTS/WALLETS NAVIGATION:
         - "Go to accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
@@ -272,6 +293,17 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
         - "Open accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
         - "Accounts page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
         - "Show wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Navigate to accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Take me to accounts" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Go to wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Take me to wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Navigate to wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Show wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Open wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Wallet page" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Go to my wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Show my wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
+        - "Take me to my wallets" -> {"action":"direct_navigation","destination":"accounts","confidence":0.9}
         
         TRANSACTIONS NAVIGATION:
         - "Go to transactions" -> {"action":"direct_navigation","destination":"transactions","confidence":0.9}
@@ -530,12 +562,14 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
                     error: 'Failed to parse command',
                     action: 'unknown',
                     confidence: 0.5,
+                    message: 'I apologize, but I encountered an error while processing your request. Please try rephrasing your command or contact support if the issue persists.',
                 };
             }
         } else {
             return {
                 action: 'unknown',
                 confidence: 0.5,
+                message: 'I apologize, but I was unable to understand your request. Please try rephrasing your command or use one of the following supported actions: send payment, check balance, view transactions, navigate to settings, or ask for help with wallet features.',
             };
         }
     } else {
@@ -546,4 +580,5 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
 module.exports = {
     processAIRequest,
     parseWalletCommand,
+    TypingAnimator,
 };

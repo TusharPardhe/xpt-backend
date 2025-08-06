@@ -15,14 +15,12 @@ const processAIRequest = async (prompt) => {
     //  Prompt with comprehensive professional instructions
     const professionalPrompt = `You are a professional cryptocurrency and blockchain wallet assistant for a financial application. 
         RESPONSE STYLE REQUIREMENTS:
-        - Use formal, business-appropriate language at all times
-        - NEVER use emojis, emoticons, or casual expressions
-        - Maintain a professional, courteous, and informative tone
-        - Use proper grammar and complete sentences
-        - Be precise and technical when discussing cryptocurrency concepts
-        - Provide clear, actionable information
-        - Keep responses concise and focused
-        - Use industry-standard terminology correctly
+        - Be clear, concise, and helpful
+        - Use appropriate technical terms when needed
+        - Focus on providing accurate information
+        - Keep responses under 200 words unless detailed explanation is needed
+        - Avoid casual language, slang, or overly enthusiastic expressions
+        - Maintain a normal tone, similar to a professional customer support agent
 
         FORBIDDEN ELEMENTS:
         - No emojis or emoticons (😊, 🚀, 💰, etc.)
@@ -561,14 +559,16 @@ const parseWalletCommand = async (message, contacts = [], context = {}) => {
                     error: 'Failed to parse command',
                     action: 'unknown',
                     confidence: 0.5,
-                    message: 'I apologize, but I encountered an error while processing your request. Please try rephrasing your command or contact support if the issue persists.',
+                    message:
+                        'I apologize, but I encountered an error while processing your request. Please try rephrasing your command or contact support if the issue persists.',
                 };
             }
         } else {
             return {
                 action: 'unknown',
                 confidence: 0.5,
-                message: 'I apologize, but I was unable to understand your request. Please try rephrasing your command or use one of the following supported actions: send payment, check balance, view transactions, navigate to settings, or ask for help with wallet features.',
+                message:
+                    'I apologize, but I was unable to understand your request. Please try rephrasing your command or use one of the following supported actions: send payment, check balance, view transactions, navigate to settings, or ask for help with wallet features.',
             };
         }
     } else {
